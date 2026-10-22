@@ -24,14 +24,36 @@ test('member privilege editor and absence workflow use dedicated permissions', (
   assert.match(absences, /describeIntervals\(row\.intervals\)/);
   assert.match(absences, /approve/);
   assert.match(absences, /reject/);
+  assert.match(absences, /<Card><div className="stack">/);
+  assert.ok(absences.indexOf('<Notice message={error}/>') < absences.indexOf('<div className="form-grid">'));
+  assert.match(src('styles.css'), /\.stack>\.notice \{margin-bottom:0;\}/);
+  assert.match(src('styles.css'), /\.form-grid>\.notice \{grid-column:1\/-1;\}/);
 });
 test('team can manage bookings without technical internal-API messages on UI', () => {
   assert.match(src('pages/AdminReservations.tsx'), /CreateTeamBooking/);
   assert.match(src('pages/AdminReservations.tsx'), /BookingStatusActions/);
   assert.doesNotMatch(src('pages/AdminReservations.tsx'), /Aktuální API neposkytuje/);
 });
+test('overview only shows management tiles and quick actions the current user can access', () => {
+  const overview = src('pages/AdminOverview.tsx');
+  assert.match(overview, /const canWrite = access\.data\?\.canWrite === true/);
+  assert.match(overview, /enabled: canWrite/);
+  assert.match(overview, /\{canWrite && <div[\s\S]*label={st\('Locations'\)}[\s\S]*label={st\('Team'\)}/);
+  assert.match(overview, /canManageBookings && model !== 'EVENT'/);
+  assert.match(overview, /hasMember\s*\?[\s\S]*'\/admin\/absence-requests'/);
+});
 test('offices are included in the resource booking category description', () => {
   const wizard=src('pages/SetupWizard.tsx');
-  assert.match(wizard, /kanceláře a coworkingové prostory/);
-  assert.match(wizard, /stůl, zasedací místnost nebo kancelář/);
+  assert.match(wizard, /offices and coworking spaces/);
+  assert.match(wizard, /table, meeting room or office/);
+});
+test('services can be permanently deleted through the guarded API action', () => {
+  const page = src('pages/AdminServices.tsx');
+  const api = src('lib/errors.ts');
+  assert.match(page, /method: 'DELETE'/);
+  assert.match(page, /useConfirm/);
+  assert.match(page, /await confirm\(tr\('Delete this service\?/);
+  assert.match(page, /title={tr\('Delete service'\)}/);
+  assert.match(page, /<Notice message={deleteError}\s*\/>/);
+  assert.match(api, /'SERVICE_IN_USE'/);
 });

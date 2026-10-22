@@ -40,18 +40,18 @@ export function WeekEditor({ org, location, member }: {
                 }).to).slice(0, 5) })) }));
         setDays(weekdayNames.map((_, i) => normalized?.find(d => d.weekday === i + 1) || { weekday: i + 1, intervals: [] }));
     } }, [data]);
-    const save = useMutation({ mutationFn: () => orgApi(org, path, json('PUT', { days: days.filter(d => d.intervals.length) })), onSuccess: () => { setFailure(''); setMessage(tr('Rozvrh byl uložen.')); qc.invalidateQueries({ queryKey: key }); }, onError: e => setFailure(safeErrorMessage(e)) });
+    const save = useMutation({ mutationFn: () => orgApi(org, path, json('PUT', { days: days.filter(d => d.intervals.length) })), onSuccess: () => { setFailure(''); setMessage(tr('Schedule saved.')); qc.invalidateQueries({ queryKey: key }); }, onError: e => setFailure(safeErrorMessage(e)) });
     const change = (weekday: number, intervals: Interval[]) => setDays(prev => prev.map(d => d.weekday === weekday ? { ...d, intervals } : d));
     if (isLoading)
         return <Loading />;
     if (error)
         return <ErrorState error={error}/>;
     return <div className="week-editor">
-    {member ? <p className="muted small">{tr('Pro každý den můžete zadat více časových intervalů.')}</p>
-      : <div className="section-heading"><div><h3>{tr('Otevírací doba')}</h3><p>{tr('Pro každý den můžete zadat více časových intervalů.')}</p></div><Clock3 size={20}/></div>}
+    {member ? <p className="muted small">{tr('You can add multiple time intervals for each day.')}</p>
+      : <div className="section-heading"><div><h3>{tr('Opening hours')}</h3><p>{tr('You can add multiple time intervals for each day.')}</p></div><Clock3 size={20}/></div>}
     <Notice message={failure}/><Notice message={message} kind="success"/>
-    {days.map(d => <div key={d.weekday} className="week-row"><strong>{tr(weekdayNames[d.weekday - 1])}</strong><div className="week-intervals">{d.intervals.length ? d.intervals.map((interval, i) => <div key={i} className="week-interval"><input type="time" value={interval.from} onChange={e => change(d.weekday, d.intervals.map((x, j) => j === i ? { ...x, from: e.target.value } : x))}/><span>–</span><input type="time" value={interval.to} onChange={e => change(d.weekday, d.intervals.map((x, j) => j === i ? { ...x, to: e.target.value } : x))}/><button className="text-button danger" onClick={() => change(d.weekday, d.intervals.filter((_, j) => j !== i))}>{tr("Odebrat")}</button></div>) : <span className="muted">{tr("Volno / zav\u0159eno")}</span>}</div><button className="text-button" onClick={() => change(d.weekday, [...d.intervals, { from: '09:00', to: '17:00' }])}>+ Interval</button></div>)}
-    <div className="form-actions"><Button loading={save.isPending} onClick={() => save.mutate()}>{tr("Ulo\u017Eit rozvrh")}</Button></div>
-    {member && <p className="muted small">{tr('Pracovní doba se nesmí překrývat s pracovní dobou na jiné pobočce ani s existujícími rezervacemi.')}</p>}
+    {days.map(d => <div key={d.weekday} className="week-row"><strong>{tr(weekdayNames[d.weekday - 1])}</strong><div className="week-intervals">{d.intervals.length ? d.intervals.map((interval, i) => <div key={i} className="week-interval"><input type="time" value={interval.from} onChange={e => change(d.weekday, d.intervals.map((x, j) => j === i ? { ...x, from: e.target.value } : x))}/><span>–</span><input type="time" value={interval.to} onChange={e => change(d.weekday, d.intervals.map((x, j) => j === i ? { ...x, to: e.target.value } : x))}/><button className="text-button danger" onClick={() => change(d.weekday, d.intervals.filter((_, j) => j !== i))}>{tr("Remove")}</button></div>) : <span className="muted">{tr("Day off / closed")}</span>}</div><button className="text-button" onClick={() => change(d.weekday, [...d.intervals, { from: '09:00', to: '17:00' }])}>+ Interval</button></div>)}
+    <div className="form-actions"><Button loading={save.isPending} onClick={() => save.mutate()}>{tr("Save schedule")}</Button></div>
+    {member && <p className="muted small">{tr('Working hours must not overlap between locations or with existing bookings.')}</p>}
   </div>;
 }

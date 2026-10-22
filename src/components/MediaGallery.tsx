@@ -7,12 +7,15 @@ import { Camera, ImagePlus, Star, Trash2 } from 'lucide-react';
 import { api, json, mediaImages, orgPath } from '../lib/api';
 import type { ImageInfo } from '../lib/types';
 import { Button, Empty, ErrorState, Loading, Notice } from './UI';
-export function MediaGallery({ org, kind, target }: {
+import { useConfirm } from '../contexts/ConfirmContext';
+export function MediaGallery({ org, kind, target, single = false }: {
     org: number;
     kind: string;
     target: number;
+    single?: boolean;
 }) {
     const qc = useQueryClient();
+    const confirm = useConfirm();
     const fileRef = useRef<HTMLInputElement>(null);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -20,20 +23,20 @@ export function MediaGallery({ org, kind, target }: {
     const { data, isLoading, error: queryError } = useQuery({ queryKey: key, queryFn: () => mediaImages(org, kind, target), retry: false });
     const mutation = useMutation({ mutationFn: async (file: File) => {
             if (!['image/jpeg', 'image/png'].includes(file.type))
-                throw new UiError('Použij JPEG nebo PNG.');
+                throw new UiError('Use JPEG or PNG.');
             if (file.size > 10 * 1024 * 1024)
-                throw new UiError('Soubor je větší než 10 MB.');
+                throw new UiError('The file exceeds 10 MB.');
             const body = new FormData();
             body.append('file', file);
             const image = await api<ImageInfo>(`${orgPath(org)}/media`, { method: 'POST', body });
             try {
-                await api(`${orgPath(org)}/images/${kind}/${target}`, json('POST', { mediaId: image.id, sortOrder: (data?.length || 0), primary: !data?.length }));
+                await api(`${orgPath(org)}/images/${kind}/${target}`, json('POST', { mediaId: image.id, sortOrder: (data?.length || 0), primary: single || !data?.length }));
             }
             catch (e) {
                 await api(`${orgPath(org)}/media/${image.id}`, { method: 'DELETE' }).catch(() => { });
                 throw e;
             }
-        }, onSuccess: () => { setError(tr("")); setSuccess(tr("Obr\u00E1zek byl nahr\u00E1n.")); qc.invalidateQueries({ queryKey: key }); }, onError: (e) => setError(safeErrorMessage(e)) });
+        }, onSuccess: () => { setError(tr("")); setSuccess(tr("Image uploaded.")); qc.invalidateQueries({ queryKey: key }); }, onError: (e) => setError(safeErrorMessage(e)) });
     const action = useMutation({ mutationFn: async ({ image, mode }: {
             image: ImageInfo;
             mode: 'primary' | 'remove';
@@ -43,12 +46,12 @@ export function MediaGallery({ org, kind, target }: {
             else
                 await api(`${orgPath(org)}/images/${kind}/${target}`, json('POST', { mediaId: image.id, sortOrder: image.sortOrder, primary: true }));
         }, onSuccess: () => { qc.invalidateQueries({ queryKey: key }); setError(tr("")); }, onError: (e) => setError(safeErrorMessage(e)) });
-    return <div className="media-section"><div className="section-heading"><div><h3>{tr("Fotografie")}</h3><p>{tr("JPEG nebo PNG do 10 MB. Obr\u00E1zky se bezpe\u010Dn\u011B ukl\u00E1daj\u00ED p\u0159es backend.")}</p></div><Button variant="secondary" loading={mutation.isPending} onClick={() => fileRef.current?.click()}><ImagePlus size={17}/>{tr("Nahr\u00E1t obr\u00E1zek")}</Button></div>
+    return <div className={`media-section ${single ? 'media-single' : ''}`}><div className="section-heading"><div><h3>{single ? tr("Organization logo") : tr("Organization photos")}</h3><p>{single ? tr("Upload one logo to show on the public booking page.") : tr("Photos are shown on the public booking page, with the primary photo first.")}</p><p className="muted small">{tr("JPEG or PNG up to 10 MB. Images are securely uploaded through the backend.")}</p></div><Button variant="secondary" loading={mutation.isPending} onClick={() => fileRef.current?.click()}><ImagePlus size={17}/>{single ? tr("Upload logo") : tr("Upload image")}</Button></div>
     <input ref={fileRef} type="file" accept="image/jpeg,image/png" hidden onChange={e => { const f = e.target.files?.[0]; if (f)
         mutation.mutate(f); e.currentTarget.value = ''; }}/>
     <Notice message={error}/><Notice message={success} kind="success"/>
-    {isLoading ? <Loading /> : queryError ? <ErrorState error={queryError}/> : !data?.length ? <Empty title={tr("Zat\u00EDm \u017E\u00E1dn\u00E9 fotografie")} description={tr("Nahraj prvn\u00ED fotografii tohoto z\u00E1znamu.")}/> : <div className="media-grid">{data.map(image => <div key={image.id} className="media-tile"><img src={image.url} alt={tr("Fotografie")} loading="lazy"/><div className="media-actions">{image.primary ? <span className="primary-label"><Star size={13} fill="currentColor"/>{tr("Hlavn\u00ED")}</span> : <button title={tr("Nastavit jako hlavn\u00ED")} onClick={() => action.mutate({ image, mode: 'primary' })}><Star size={16}/></button>}<button title={tr("Odebrat fotografii")} onClick={() => { if (confirm(tr("Odebrat fotografii?")))
+    {isLoading ? <Loading /> : queryError ? <ErrorState error={queryError}/> : !data?.length ? <Empty title={single ? tr("No logo yet") : tr("No photos yet")} description={single ? tr("No organization logo has been uploaded yet.") : tr("No photo has been added yet. You can upload one later.")}/> : <div className={`media-grid ${single ? 'media-logo-grid' : ''}`}>{data.map(image => <div key={image.id} className="media-tile"><img src={image.url} alt={single ? tr("Organization logo") : tr("Photos")} loading="lazy"/><div className="media-actions">{image.primary ? <span className="primary-label"><Star size={13} fill="currentColor"/>{tr(single ? "Organization logo" : "Primary")}</span> : <button title={tr("Set as primary")} onClick={() => action.mutate({ image, mode: 'primary' })}><Star size={16}/></button>}<button title={tr("Remove photo")} onClick={async () => { if (await confirm(tr(single ? "Remove organization logo?" : "Remove photo?")))
         action.mutate({ image, mode: 'remove' }); }}><Trash2 size={16}/></button></div></div>)}</div>}
-    <p className="muted small"><Camera size={14}/>{tr("P\u0159i odebr\u00E1n\u00ED se odstran\u00ED vazba fotografie. Nepou\u017E\u00EDvan\u00FD soubor lze n\u00E1sledn\u011B odstranit ve spr\u00E1v\u011B m\u00E9di\u00ED.")}</p>
+    {!single && <p className="muted small"><Camera size={14}/>{tr("Removing a photo unlinks it. You can delete the unused file later in media management.")}</p>}
   </div>;
 }

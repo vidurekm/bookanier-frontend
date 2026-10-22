@@ -21,10 +21,46 @@ test('all supported languages translate navigation and booking', () => {
   const expected = { cs: 'Rezervace', sk: 'Rezervácie', pl: 'Rezerwacje', en: 'Bookings' };
   for (const [locale, result] of Object.entries(expected)) {
     language = locale;
-    assert.equal(translations.tr('Rezervace'), result);
+    assert.equal(translations.tr('Bookings'), result);
     assert.ok(translations.tr('Potvrdit rezervaci'));
     assert.ok(errors.errorMessage('SLOT_UNAVAILABLE'));
   }
+  language = 'cs';
+  assert.equal(translations.tr('Invite staff member'), 'Pozvat zaměstnance');
+  assert.equal(translations.tr('Organization logo'), 'Logo organizace');
+  assert.equal(translations.tr('Customers'), 'Zákazníci');
+  language = 'en';
+  assert.equal(translations.tr('Invite staff member'), 'Invite staff member');
+});
+
+test('email examples and form validation messages use the selected language', () => {
+  const expected = {
+    cs: ['vas@email.cz', 'Vyplňte prosím toto pole.'],
+    sk: ['vas@email.sk', 'Vyplňte, prosím, toto pole.'],
+    pl: ['twoj@email.pl', 'Wypełnij to pole.'],
+    en: ['your@email.com', 'Please fill out this field.'],
+  };
+  for (const [locale, [email, required]] of Object.entries(expected)) {
+    language = locale;
+    assert.equal(translations.tr('your@email.com'), email);
+    assert.equal(translations.tr('Please fill out this field.'), required);
+  }
+  language = 'cs';
+});
+
+test('registration examples use the selected language', () => {
+  const expected = {
+    cs: ['Např. Studio Aurora', 'Jana Nováková'],
+    sk: ['Napr. Štúdio Aurora', 'Jana Nováková'],
+    pl: ['Np. Studio Aurora', 'Anna Kowalska'],
+    en: ['e.g. Aurora Studio', 'Jane Smith'],
+  };
+  for (const [locale, [organization, name]] of Object.entries(expected)) {
+    language = locale;
+    assert.equal(translations.tr('e.g. Aurora Studio'), organization);
+    assert.equal(translations.tr('Jane Smith'), name);
+  }
+  language = 'cs';
 });
 
 test('known machine error code maps to a localized message', () => {
@@ -32,6 +68,7 @@ test('known machine error code maps to a localized message', () => {
   assert.equal(errors.knownErrorCode('SLOT_UNAVAILABLE'), 'SLOT_UNAVAILABLE');
   assert.equal(errors.statusErrorCode(409), 'CONFLICT');
   assert.match(errors.safeErrorMessage(new errors.ApiError(409, 'SLOT_UNAVAILABLE')), /no longer available/);
+  assert.match(errors.safeErrorMessage(new errors.ApiError(409, 'SERVICE_IN_USE')), /cannot be deleted/);
 });
 
 test('server-supplied text never appears in the UI', () => {
@@ -44,5 +81,5 @@ test('server-supplied text never appears in the UI', () => {
 
 test('local validation messages are translated', () => {
   language = 'pl';
-  assert.match(errors.safeErrorMessage(new errors.UiError('Vyberte pracovníka.')), /Wybierz pracownika/);
+  assert.match(errors.safeErrorMessage(new errors.UiError('Choose a staff member.')), /Wybierz pracownika/);
 });

@@ -6,14 +6,14 @@ export interface OpeningInterval { locationIndex:number; weekday:number; start:s
 export interface SetupOwner { id:number; name:string }
 export interface SetupDraft {
   templateKey:string; multiLocation:boolean; locations:{name:string;address:string;timezone:string;latitude?:number|null;longitude?:number|null}[];
-  members:{name:string;locationIndexes?:number[];providesServices?:boolean;canManageBookings?:boolean;canApproveOwnAbsence?:boolean}[]; services:{name:string;durationMinutes:number;price:number;currency:string}[];
+  members:{name:string;email:string;locationIndexes?:number[];providesServices?:boolean;canManageBookings?:boolean;canApproveOwnAbsence?:boolean}[]; services:{name:string;durationMinutes:number;price:number;currency:string}[];
   trackResources:boolean; resourceCount:number; resourceCapacity:number; resourceName:string;
   customerSelectResource:boolean;showStaffChoice:boolean;useWaitlist:boolean;eventCapacity:number;
   workingStart:string;workingEnd:string;ownerProvidesServices:boolean;ownerLocationIndex:number;openingHours:OpeningInterval[];
   defaultPublicLanguage:string;defaultCurrency:string;dateFormat:string;
 }
 export interface BookingConfig { organization_id:number;template_key:string|null;booking_model:BookingModel|null;setup_status:SetupStatus;settings:SetupDraft|Record<string,unknown>;locked_at?:string }
-export interface PublicBookingMode { booking_model:BookingModel|null;template_key:string|null;setup_status:SetupStatus;settings:{defaultPublicLanguage?:string;defaultCurrency?:string;dateFormat?:string;showStaffChoice?:boolean;customerSelectResource?:boolean;[key:string]:unknown};location_count:number }
+export interface PublicBookingMode { booking_model:BookingModel|null;template_key:string|null;setup_status:SetupStatus;settings:{defaultPublicLanguage?:string;defaultCurrency?:string;dateFormat?:string;showStaffChoice?:boolean;customerSelectResource?:boolean;maxAdvanceDays?:number;[key:string]:unknown};location_count:number }
 export const defaultOpeningHours=(locationIndex:number):OpeningInterval[]=>Array.from({length:5},(_,i)=>({locationIndex,weekday:i+1,start:'09:00',end:'17:00'}));
 export const defaultSetup:SetupDraft={templateKey:'SALON',multiLocation:false,locations:[{name:'Hlavní pobočka',address:'',timezone:'Europe/Prague'}],members:[],services:[{name:'',durationMinutes:60,price:0,currency:'CZK'}],trackResources:false,resourceCount:1,resourceCapacity:1,resourceName:'Křeslo',customerSelectResource:false,showStaffChoice:true,useWaitlist:false,eventCapacity:12,workingStart:'09:00',workingEnd:'17:00',defaultPublicLanguage:'cs',defaultCurrency:'CZK',dateFormat:'DD.MM.YYYY',ownerProvidesServices:false,ownerLocationIndex:0,openingHours:defaultOpeningHours(0)};
 const decodeJson=(value:unknown):Record<string,unknown>=>{if(typeof value==='string'){try{return JSON.parse(value) as Record<string,unknown>;}catch{return {};}}return value&&typeof value==='object'?value as Record<string,unknown>:{};};
@@ -26,4 +26,4 @@ export const publicMode=async(uuid:string)=>{const x=await api<PublicBookingMode
 
 export const publicResources=(uuid:string,location:number,service:number)=>api<{id:number;name:string;capacity:number}[]>(`/public/organizations/${encodeURIComponent(uuid)}/resources?locationId=${location}&serviceId=${service}`,{},false);
 
-export const updateSetupOptions=(org:number,options:{customerSelectResource:boolean;showStaffChoice:boolean;eventCapacity:number;defaultPublicLanguage:string;defaultCurrency:string;dateFormat:string})=>orgApi<BookingConfig>(org,'/setup/options',json('PUT',options));
+export const updateSetupOptions=(org:number,options:{customerSelectResource:boolean;showStaffChoice:boolean;eventCapacity:number;defaultPublicLanguage:string;defaultCurrency:string;dateFormat:string;maxAdvanceDays:number})=>orgApi<BookingConfig>(org,'/setup/options',json('PUT',options));

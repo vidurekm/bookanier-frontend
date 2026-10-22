@@ -11,6 +11,9 @@ new Function('exports','require',compiled)(exportsObject,require);
 
 test('localized URLs are shareable and preserve deep-link paths', () => {
   const {urlLocale, localizedPath}=exportsObject;
+  assert.match(source, /DEFAULT_LANGUAGE:\s*Language\s*=\s*'en'/);
+  assert.match(source, /urlLocale\(window\.location\.pathname\)\s*\|\|\s*DEFAULT_LANGUAGE/);
+  assert.match(src('main.tsx'), /let desired:\s*Language\s*=\s*DEFAULT_LANGUAGE/);
   assert.equal(urlLocale('/pl/'), 'pl');
   assert.equal(urlLocale('/en/admin/tym'), 'en');
   assert.equal(urlLocale('/'), null);

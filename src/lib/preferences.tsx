@@ -1,4 +1,4 @@
-import { urlLocale, localizedPath } from './locale';
+import { DEFAULT_LANGUAGE, urlLocale, localizedPath } from './locale';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 export type Language = 'cs' | 'sk' | 'pl' | 'en';
@@ -26,7 +26,7 @@ const initialLanguage = (): Language => {
   if (fromUrl) return fromUrl;
   try { const stored = localStorage.getItem(LANGUAGE_KEY) ?? localStorage.getItem('rezervo_language_v1'); if (supported(stored)) return stored; } catch { /* storage disabled */ }
   const browser = navigator.language.toLowerCase().split('-')[0];
-  return supported(browser) ? browser : 'cs';
+  return supported(browser) ? browser : DEFAULT_LANGUAGE;
 };
 const initialTheme = (): ColorTheme => {
   try { const stored = localStorage.getItem(THEME_KEY) ?? localStorage.getItem('rezervo_backoffice_theme_v1'); if (themeSupported(stored)) return stored; } catch { /* storage disabled */ }
@@ -37,7 +37,11 @@ interface Preferences { appearance: Appearance; setAppearance: (appearance: Appe
 const PreferencesContext = createContext<Preferences | null>(null);
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [appearance,setAppearance]=useState<Appearance>(()=>{try{return localStorage.getItem(APPEARANCE_KEY)==='dark'?'dark':'light';}catch{return 'light';}});
-  const [language, setLanguage] = useState<Language>(initialLanguage);
+  const [language, setLanguage] = useState<Language>(() => {
+    const initial = initialLanguage();
+    activeLanguage = initial;
+    return initial;
+  });
   const [theme, setTheme] = useState<ColorTheme>(initialTheme);
   useEffect(() => {
     document.documentElement.lang = language === 'cs' ? 'cs' : language;

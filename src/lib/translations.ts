@@ -1,2442 +1,697 @@
 import { currentLanguage, type Language } from './preferences';
 
-// Czech UI text acts as the stable lookup key for this version of the application.
 // User input and API error messages are NEVER translated or rendered through this dictionary.
+// English phrases are the lookup keys; values are ordered Czech, Slovak, Polish.
 const translations: Record<string, [string, string, string]> = {
-  'Stůl':['Stôl','Stół','Table'],
-  'Křeslo':['Kreslo','Fotel','Chair'],
-  'Nářadí':['Náradie','Narzędzia','Tools'],
-  "Uložit nový termín": ["Uložiť nový termín", "Zapisz nowy termin", "Save new time"],
-  "Vyberte nové datum a čas. Před uložením ověříme volný termín pracovníka.": ["Vyberte nový dátum a čas. Pred uložením overíme dostupnosť pracovníka.", "Wybierz nową datę i godzinę. Przed zapisem sprawdzimy dostępność pracownika.", "Choose a new date and time. We will check staff availability before saving."],
-  "Přesunout termín": ["Presunúť termín", "Przenieś termin", "Reschedule booking"],
-  "Rezervační odkaz zatím není k dispozici.": ["Rezervačný odkaz zatiaľ nie je k dispozícii.", "Link do rezerwacji nie jest jeszcze dostępny.", "The booking link is not available yet."],
-  "Přidejte vybavení nebo osoby, které jsou pro službu potřeba. Kapacita se při rezervaci automaticky kontroluje.": ["Pridajte vybavenie alebo osoby potrebné pre službu. Dostupnosť sa pri rezervácii kontroluje.", "Dodaj sprzęt lub osoby potrzebne do usługi. Dostępność zostanie sprawdzona przy rezerwacji.", "Add the equipment or people a service needs. Availability is checked when booking."],
-  "Ceníky se nesmějí časově překrývat. Nejdříve ukončete platnost předchozí ceny.": ["Cenníky sa nesmú časovo prekrývať. Najskôr ukončite platnosť predchádzajúcej ceny.", "Okresy ważności cenników nie mogą się nakładać. Najpierw zakończ poprzednią cenę.", "Pricing periods cannot overlap. End the previous price first."],
-  "Zadejte platný rezervační odkaz.": ["Zadajte platný rezervačný odkaz.", "Wprowadź poprawny link do rezerwacji.", "Enter a valid booking link."],
-  "Zatím zde nejsou k dispozici žádné služby. Zkuste jinou pobočku nebo datum.": ["Zatiaľ tu nie sú dostupné žiadne služby. Skúste inú pobočku alebo dátum.", "Nie ma jeszcze dostępnych usług. Wybierz inną lokalizację lub datę.", "There are no services available yet. Try another location or date."],
-  "Rezervační stránku se nepodařilo načíst. Zkuste to prosím později.": ["Rezervačnú stránku sa nepodarilo načítať. Skúste to neskôr.", "Nie udało się załadować strony rezerwacji. Spróbuj później.", "The booking page could not be loaded. Please try again later."],
-  "Změna měny nepřepočítává již uložené ceny. Cenu a měnu existující služby změníte vytvořením nové cenové verze.": ["Zmena meny neprepočítava existujúce ceny. Novú cenu a menu nastavíte v novej cenovej verzii.", "Zmiana waluty nie przelicza dotychczasowych cen. Nową cenę i walutę ustawisz w nowej wersji cennika.", "Changing currency will not convert existing prices. Add a new price version for an existing service."],
-  "Výchozí měna pro nové služby": ["Predvolená mena pre nové služby", "Domyślna waluta nowych usług", "Default currency for new services"],
-  "Pokud výběr pracovníka vypnete, aplikace přiřadí volného pracovníka automaticky. Toto je jiné nastavení než výběr vybavení nebo místnosti.": ["Ak výber pracovníka vypnete, systém automaticky pridelí dostupnú osobu. Výber vybavenia sa nastavuje samostatne.", "Po wyłączeniu wyboru system automatycznie przydzieli dostępnego pracownika. Wybór sprzętu to osobne ustawienie.", "When staff selection is disabled, an available worker is assigned automatically. Equipment selection is configured separately."],
-  "Zákazník si může zvolit konkrétního pracovníka": ["Zákazník si môže vybrať konkrétneho pracovníka", "Klient może wybrać konkretnego pracownika", "Customers can choose a specific staff member"],
-  "Zákazník si může vybrat konkrétní vybavení nebo prostor": ["Zákazník si môže vybrať konkrétne vybavenie alebo priestor", "Klient może wybrać konkretny sprzęt lub pomieszczenie", "Customers can choose specific equipment or a room"],
-  "Automaticky podle dostupnosti": ["Automaticky podľa dostupnosti", "Automatycznie według dostępności", "Automatically by availability"],
-  "Bez uvedení důvodu": ["Bez uvedenia dôvodu", "Bez podania powodu", "No reason given"],
-  "Dokončit": ["Dokončiť", "Zakończ", "Complete"],
-  "Důvod (volitelné)": ["Dôvod (nepovinné)", "Powód (opcjonalnie)", "Reason (optional)"],
-  "E-mail zákazníka (nepovinné)": ["E-mail zákazníka (nepovinné)", "E-mail klienta (opcjonalnie)", "Customer email (optional)"],
-  "Každý přihlášený pracovník vidí své rezervace. Oprávnění níže mu umožní pomáhat kolegům bez přístupu do veškerého nastavení.": ["Každý prihlásený pracovník vidí svoje rezervácie. Vybrané oprávnenia umožňujú pomáhať kolegom bez plného prístupu.", "Każdy zalogowany pracownik widzi swoje rezerwacje. Poniższe uprawnienia pozwalają pomagać innym bez pełnego dostępu administracyjnego.", "Every signed-in employee sees their bookings. These permissions allow helping colleagues without full admin access."],
-  "Může si sám schvalovat volno a změny směn": ["Môže si sám schvaľovať voľno a zmeny smien", "Może sam zatwierdzać urlopy i zmiany grafiku", "Can approve own time off and shift changes"],
-  "Může vytvářet rezervace a spravovat rezervace kolegů": ["Môže vytvárať a spravovať rezervácie kolegov", "Może tworzyć i zarządzać rezerwacjami współpracowników", "Can create and manage team bookings"],
-  "Nová žádost": ["Nová žiadosť", "Nowy wniosek", "New request"],
-  "Odebrat interval": ["Odobrať interval", "Usuń przedział", "Remove interval"],
-  "Odeslat žádost": ["Odoslať žiadosť", "Wyślij wniosek", "Submit request"],
-  "Opravdu zrušit tuto rezervaci?": ["Naozaj zrušiť túto rezerváciu?", "Czy na pewno anulować rezerwację?", "Are you sure you want to cancel this booking?"],
-  "Oprávnění pro každodenní provoz": ["Oprávnenia na každodennú prevádzku", "Uprawnienia do codziennej pracy", "Day-to-day permissions"],
-  "Potvrdit": ["Potvrdiť", "Potwierdź", "Confirm"],
-  "Pracovník": ["Pracovník", "Pracownik", "Staff member"],
-  "Pracovník požádá o volno nebo kratší směnu. Změna se projeví až po schválení, pokud nemá povolené vlastní schvalování.": ["Pracovník požiada o voľno alebo kratšiu zmenu. Zmena sa uplatní až po schválení, ak nemá vlastné schvaľovanie.", "Pracownik prosi o wolne lub krótszą zmianę. Zmiana zacznie obowiązywać po zatwierdzeniu, chyba że może zatwierdzać własne wnioski.", "Employees request time off or shorter shifts. Changes apply only after approval unless self-approval is enabled."],
-  "Před uložením se znovu ověří dostupnost služby a pracovníka. Rezervace jiných kolegů nelze překrýt.": ["Pred uložením sa overí dostupnosť služby a pracovníka. Rezervácie sa nesmú prekrývať.", "Przed zapisem system ponownie sprawdzi dostępność usługi i pracownika. Rezerwacje nie mogą się pokrywać.", "Availability is checked before saving. Team bookings cannot overlap."],
-  "Přidat interval": ["Pridať interval", "Dodaj przedział", "Add interval"],
-  "Přihlašovací účet pracovníka se připojuje samostatně. Vlastník a administrátor mají oprávnění ke správě automaticky.": ["Prihlasovací účet pracovníka sa pripája samostatne. Vlastník a administrátor majú práva automaticky.", "Konto logowania pracownika łączy się osobno. Właściciel i administrator mają uprawnienia automatycznie.", "Staff login accounts are linked separately. Owners and admins have management access automatically."],
-  "Schváleno": ["Schválené", "Zatwierdzono", "Approved"],
-  "Schválit": ["Schváliť", "Zatwierdź", "Approve"],
-  "Správa rezervací týmu": ["Správa rezervácií tímu", "Zarządzanie rezerwacjami zespołu", "Team booking management"],
-  "Telefon (nepovinné)": ["Telefón (nepovinné)", "Telefon (opcjonalnie)", "Phone (optional)"],
-  "TÝM A DOSTUPNOST": ["TÍM A DOSTUPNOSŤ", "ZESPÓŁ I DOSTĘPNOŚĆ", "TEAM & AVAILABILITY"],
-  "Vaše oprávnění umožňuje žádost rovnou schválit.": ["Vaše oprávnenia umožňujú okamžité schválenie.", "Twoje uprawnienia pozwalają od razu zatwierdzić wniosek.", "Your permissions allow immediate approval."],
-  "Vytvořit rezervaci": ["Vytvoriť rezerváciu", "Utwórz rezerwację", "Create booking"],
-  "Výchozí jazyk veřejné stránky": ["Predvolený jazyk verejnej stránky", "Domyślny język strony publicznej", "Default public page language"],
-  "Výchozí měna": ["Predvolená mena", "Domyślna waluta", "Default currency"],
-  "Výchozí měna se použije u nových služeb. Ceny existujících služeb se automaticky nepřepočítávají.": ["Predvolená mena platí pre nové služby. Existujúce ceny sa neprepočítavajú.", "Domyślna waluta dotyczy nowych usług. Dotychczasowe ceny nie są automatycznie przeliczane.", "Default currency applies to new services. Existing prices are not converted."],
-  "Zadejte intervaly, kdy tento den pracovník bude pracovat.": ["Zadajte intervaly, kedy bude pracovník pracovať.", "Podaj godziny, w których pracownik będzie pracować tego dnia.", "Enter the hours the employee will work on this day."],
-  "Zamítnout": ["Zamietnuť", "Odrzuć", "Reject"],
-  "Zamítnuto": ["Zamietnuté", "Odrzucono", "Rejected"],
-  "Zatím žádné žádosti.": ["Zatiaľ žiadne žiadosti.", "Brak wniosków.", "No requests yet."],
-  "Změna byla uložena.": ["Zmena bola uložená.", "Zmiana zapisana.", "Change saved."],
-  "Změna směny": ["Zmena smeny", "Zmiana grafiku", "Shift change"],
-  "Čeká na schválení": ["Čaká na schválenie", "Oczekuje na zatwierdzenie", "Pending approval"],
-  "Žádost byla odeslána.": ["Žiadosť bola odoslaná.", "Wniosek wysłany.", "Request submitted."],
-  "Žádost odešlete ke schválení vedoucímu.": ["Žiadosť sa odošle vedúcemu na schválenie.", "Wniosek zostanie wysłany przełożonemu do zatwierdzenia.", "Your request will be sent to a manager for approval."],
-  "Žádosti": ["Žiadosti", "Wnioski", "Requests"],
-  "Žádosti o volno a změny směn": ["Žiadosti o voľno a zmeny smien", "Wnioski o wolne i zmiany grafiku", "Time off and shift change requests"],
+  "Confirm action": ["Potvrdit akci", "Potvrdiť akciu", "Potwierdź działanie"],
+  "Confirm": ["Potvrdit", "Potvrdiť", "Potwierdź"],
+  "Customer count": ["Zákazníků", "Zákazníkov", "Klientów"],
+  "Location count": ["Poboček", "Pobočiek", "Lokalizacji"],
+  "Service count": ["Služeb", "Služieb", "Usług"],
+  "Team member count": ["Členů týmu", "Členov tímu", "Członków zespołu"],
+  "Resource count": ["Zdrojů", "Zdrojov", "Zasobów"],
+  "Delete customer": ["Smazat zákazníka", "Odstrániť zákazníka", "Usuń klienta"],
+  "Delete this customer? Past reservations will be kept and waitlist entries cancelled.": ["Opravdu smazat tohoto zákazníka? Historie rezervací zůstane zachována a čekající záznamy budou zrušeny.", "Naozaj odstrániť tohto zákazníka? História rezervácií zostane zachovaná a čakajúce záznamy budú zrušené.", "Czy na pewno usunąć tego klienta? Historia rezerwacji zostanie zachowana, a wpisy na listę oczekujących zostaną anulowane."],
+  "You have no active location assigned.": ["Nemáte přiřazenou žádnou aktivní pobočku.", "Nemáte priradenú žiadnu aktívnu pobočku.", "Nie masz przypisanej żadnej aktywnej lokalizacji."],
+  "Invite staff member": ["Pozvat zaměstnance", "Pozvať zamestnanca", "Zaproś pracownika"],
+  "Remove from team": ["Odebrat z týmu", "Odobrať z tímu", "Usuń z zespołu"],
+  "Archive location": ["Zrušit pobočku", "Zrušiť pobočku", "Archiwizuj lokalizację"],
+  "Archive this location? Historical reservations will be kept.": ["Opravdu zrušit tuto pobočku? Historické rezervace zůstanou zachovány.", "Naozaj zrušiť túto pobočku? História rezervácií zostane zachovaná.", "Czy na pewno zarchiwizować tę lokalizację? Historia rezerwacji zostanie zachowana."],
+  "Remove this worker from the team? Their account and historical reservations will be kept.": ["Opravdu odebrat tohoto pracovníka z týmu? Jeho účet i historie rezervací zůstanou zachovány.", "Naozaj odobrať tohto pracovníka z tímu? Jeho účet aj história rezervácií zostanú zachované.", "Czy na pewno usunąć tego pracownika z zespołu? Jego konto i historia rezerwacji zostaną zachowane."],
+  "Link account by email": ["Připojit účet e-mailem", "Pripojiť účet e-mailom", "Połącz konto e-mailem"],
+  "Pending invitations": ["Čekající pozvánky", "Čakajúce pozvánky", "Oczekujące zaproszenia"],
+  "Invitation sent": ["Pozvánka odeslána", "Pozvánka odoslaná", "Zaproszenie wysłane"],
+  "The invitation is valid for 24 hours. If this email already has an account, that account will be linked.": ["Pozvánka je platná 24 hodin. Pokud e-mail už má účet, připojí se stávající účet bez vytvoření dalšího.", "Pozvánka platí 24 hodín. Ak e-mail už má účet, pripojí sa existujúci účet bez vytvorenia ďalšieho.", "Zaproszenie jest ważne 24 godziny. Jeśli adres e-mail ma już konto, zostanie ono połączone bez tworzenia kolejnego."],
+  "Invitation to organization": ["Pozvánka do organizace", "Pozvánka do organizácie", "Zaproszenie do organizacji"],
+  "Invitation accepted": ["Pozvánka přijata", "Pozvánka prijatá", "Zaproszenie przyjęte"],
+  "This invitation link is invalid or expired.": ["Odkaz pozvánky je neplatný nebo vypršel.", "Odkaz pozvánky je neplatný alebo vypršal.", "Link zaproszenia jest nieprawidłowy lub wygasł."],
+  "This email already has an account. Sign in to accept the invitation.": ["Tato e-mailová adresa už má účet. Přihlaste se k němu a pozvánku přijměte.", "Táto e-mailová adresa už má účet. Prihláste sa a prijmite pozvánku.", "Ten adres e-mail ma już konto. Zaloguj się, aby przyjąć zaproszenie."],
+  "Join the team and use your account across organizations.": ["Připojte se k týmu a používejte svůj účet napříč organizacemi.", "Pripojte sa k tímu a používajte svoj účet vo viacerých organizáciách.", "Dołącz do zespołu i używaj jednego konta w wielu organizacjach."],
+  "Create a password (min. 8 characters)": ["Vytvořte heslo (min. 8 znaků)", "Vytvorte heslo (min. 8 znakov)", "Utwórz hasło (min. 8 znaków)"],
+  "Create account and accept invitation": ["Vytvořit účet a přijmout pozvánku", "Vytvoriť účet a prijať pozvánku", "Utwórz konto i przyjmij zaproszenie"],
+  "Accept invitation": ["Přijmout pozvánku", "Prijať pozvánku", "Przyjmij zaproszenie"],
+  "Send invitation": ["Odeslat pozvánku", "Odoslať pozvánku", "Wyślij zaproszenie"],
+  "Organizations where you have active memberships will appear here.": ["Zde se zobrazí všechny organizace, ve kterých máte aktivní členství.", "Tu sa zobrazia všetky organizácie, v ktorých máte aktívne členstvo.", "Tutaj zobaczysz organizacje, w których masz aktywne członkostwo."],
+  "You can now open the organization.": ["Nyní můžete otevřít organizaci.", "Teraz môžete otvoriť organizáciu.", "Możesz teraz otworzyć organizację."],
+  "Open organization": ["Otevřít organizaci", "Otvoriť organizáciu", "Otwórz organizację"],
+  "Table": ["Stůl", "Stôl", "Stół"],
+  "Chair": ["Křeslo", "Kreslo", "Fotel"],
+  "Tools": ["Nářadí", "Náradie", "Narzędzia"],
+  "Save new time": ["Uložit nový termín", "Uložiť nový termín", "Zapisz nowy termin"],
+  "Choose a new date and time. We will check staff availability before saving.": ["Vyberte nové datum a čas. Před uložením ověříme volný termín pracovníka.", "Vyberte nový dátum a čas. Pred uložením overíme dostupnosť pracovníka.", "Wybierz nową datę i godzinę. Przed zapisem sprawdzimy dostępność pracownika."],
+  "Reschedule booking": ["Přesunout termín", "Presunúť termín", "Przenieś termin"],
+  "The booking link is not available yet.": ["Rezervační odkaz zatím není k dispozici.", "Rezervačný odkaz zatiaľ nie je k dispozícii.", "Link do rezerwacji nie jest jeszcze dostępny."],
+  "Add the equipment or people a service needs. Availability is checked when booking.": ["Přidejte vybavení nebo osoby, které jsou pro službu potřeba. Kapacita se při rezervaci automaticky kontroluje.", "Pridajte vybavenie alebo osoby potrebné pre službu. Dostupnosť sa pri rezervácii kontroluje.", "Dodaj sprzęt lub osoby potrzebne do usługi. Dostępność zostanie sprawdzona przy rezerwacji."],
+  "Pricing periods cannot overlap. End the previous price first.": ["Ceníky se nesmějí časově překrývat. Nejdříve ukončete platnost předchozí ceny.", "Cenníky sa nesmú časovo prekrývať. Najskôr ukončite platnosť predchádzajúcej ceny.", "Okresy ważności cenników nie mogą się nakładać. Najpierw zakończ poprzednią cenę."],
+  "Enter a valid booking link.": ["Zadejte platný rezervační odkaz.", "Zadajte platný rezervačný odkaz.", "Wprowadź poprawny link do rezerwacji."],
+  "There are no services available yet. Try another location or date.": ["Zatím zde nejsou k dispozici žádné služby. Zkuste jinou pobočku nebo datum.", "Zatiaľ tu nie sú dostupné žiadne služby. Skúste inú pobočku alebo dátum.", "Nie ma jeszcze dostępnych usług. Wybierz inną lokalizację lub datę."],
+  "The booking page could not be loaded. Please try again later.": ["Rezervační stránku se nepodařilo načíst. Zkuste to prosím později.", "Rezervačnú stránku sa nepodarilo načítať. Skúste to neskôr.", "Nie udało się załadować strony rezerwacji. Spróbuj później."],
+  "Changing currency will not convert existing prices. Add a new price version for an existing service.": ["Změna měny nepřepočítává již uložené ceny. Cenu a měnu existující služby změníte vytvořením nové cenové verze.", "Zmena meny neprepočítava existujúce ceny. Novú cenu a menu nastavíte v novej cenovej verzii.", "Zmiana waluty nie przelicza dotychczasowych cen. Nową cenę i walutę ustawisz w nowej wersji cennika."],
+  "Default currency for new services": ["Výchozí měna pro nové služby", "Predvolená mena pre nové služby", "Domyślna waluta nowych usług"],
+  "When staff selection is disabled, an available worker is assigned automatically. Equipment selection is configured separately.": ["Pokud výběr pracovníka vypnete, aplikace přiřadí volného pracovníka automaticky. Toto je jiné nastavení než výběr vybavení nebo místnosti.", "Ak výber pracovníka vypnete, systém automaticky pridelí dostupnú osobu. Výber vybavenia sa nastavuje samostatne.", "Po wyłączeniu wyboru system automatycznie przydzieli dostępnego pracownika. Wybór sprzętu to osobne ustawienie."],
+  "Customers can choose a specific staff member": ["Zákazník si může zvolit konkrétního pracovníka", "Zákazník si môže vybrať konkrétneho pracovníka", "Klient może wybrać konkretnego pracownika"],
+  "Customers can choose specific equipment or a room": ["Zákazník si může vybrat konkrétní vybavení nebo prostor", "Zákazník si môže vybrať konkrétne vybavenie alebo priestor", "Klient może wybrać konkretny sprzęt lub pomieszczenie"],
+  "Automatically by availability": ["Automaticky podle dostupnosti", "Automaticky podľa dostupnosti", "Automatycznie według dostępności"],
+  "No reason given": ["Bez uvedení důvodu", "Bez uvedenia dôvodu", "Bez podania powodu"],
+  "Complete": ["Dokončit", "Dokončiť", "Zakończ"],
+  "Reason (optional)": ["Důvod (volitelné)", "Dôvod (nepovinné)", "Powód (opcjonalnie)"],
+  "Customer email (optional)": ["E-mail zákazníka (nepovinné)", "E-mail zákazníka (nepovinné)", "E-mail klienta (opcjonalnie)"],
+  "Every signed-in employee sees their bookings. These permissions allow helping colleagues without full admin access.": ["Každý přihlášený pracovník vidí své rezervace. Oprávnění níže mu umožní pomáhat kolegům bez přístupu do veškerého nastavení.", "Každý prihlásený pracovník vidí svoje rezervácie. Vybrané oprávnenia umožňujú pomáhať kolegom bez plného prístupu.", "Każdy zalogowany pracownik widzi swoje rezerwacje. Poniższe uprawnienia pozwalają pomagać innym bez pełnego dostępu administracyjnego."],
+  "Can approve own time off and shift changes": ["Může si sám schvalovat volno a změny směn", "Môže si sám schvaľovať voľno a zmeny smien", "Może sam zatwierdzać urlopy i zmiany grafiku"],
+  "Can create and manage team bookings": ["Může vytvářet rezervace a spravovat rezervace kolegů", "Môže vytvárať a spravovať rezervácie kolegov", "Może tworzyć i zarządzać rezerwacjami współpracowników"],
+  "New request": ["Nová žádost", "Nová žiadosť", "Nowy wniosek"],
+  "Remove interval": ["Odebrat interval", "Odobrať interval", "Usuń przedział"],
+  "Submit request": ["Odeslat žádost", "Odoslať žiadosť", "Wyślij wniosek"],
+  "Are you sure you want to cancel this booking?": ["Opravdu zrušit tuto rezervaci?", "Naozaj zrušiť túto rezerváciu?", "Czy na pewno anulować rezerwację?"],
+  "Day-to-day permissions": ["Oprávnění pro každodenní provoz", "Oprávnenia na každodennú prevádzku", "Uprawnienia do codziennej pracy"],
+  "Staff member": ["Pracovník", "Pracovník", "Pracownik"],
+  "Employees request time off or shorter shifts. Changes apply only after approval unless self-approval is enabled.": ["Pracovník požádá o volno nebo kratší směnu. Změna se projeví až po schválení, pokud nemá povolené vlastní schvalování.", "Pracovník požiada o voľno alebo kratšiu zmenu. Zmena sa uplatní až po schválení, ak nemá vlastné schvaľovanie.", "Pracownik prosi o wolne lub krótszą zmianę. Zmiana zacznie obowiązywać po zatwierdzeniu, chyba że może zatwierdzać własne wnioski."],
+  "Availability is checked before saving. Team bookings cannot overlap.": ["Před uložením se znovu ověří dostupnost služby a pracovníka. Rezervace jiných kolegů nelze překrýt.", "Pred uložením sa overí dostupnosť služby a pracovníka. Rezervácie sa nesmú prekrývať.", "Przed zapisem system ponownie sprawdzi dostępność usługi i pracownika. Rezerwacje nie mogą się pokrywać."],
+  "Add interval": ["Přidat interval", "Pridať interval", "Dodaj przedział"],
+  "Staff login accounts are linked separately. Owners and admins have management access automatically.": ["Přihlašovací účet pracovníka se připojuje samostatně. Vlastník a administrátor mají oprávnění ke správě automaticky.", "Prihlasovací účet pracovníka sa pripája samostatne. Vlastník a administrátor majú práva automaticky.", "Konto logowania pracownika łączy się osobno. Właściciel i administrator mają uprawnienia automatycznie."],
+  "Approved": ["Schváleno", "Schválené", "Zatwierdzono"],
+  "Approve": ["Schválit", "Schváliť", "Zatwierdź"],
+  "Team booking management": ["Správa rezervací týmu", "Správa rezervácií tímu", "Zarządzanie rezerwacjami zespołu"],
+  "Phone (optional)": ["Telefon (nepovinné)", "Telefón (nepovinné)", "Telefon (opcjonalnie)"],
+  "TEAM & AVAILABILITY": ["TÝM A DOSTUPNOST", "TÍM A DOSTUPNOSŤ", "ZESPÓŁ I DOSTĘPNOŚĆ"],
+  "Your permissions allow immediate approval.": ["Vaše oprávnění umožňuje žádost rovnou schválit.", "Vaše oprávnenia umožňujú okamžité schválenie.", "Twoje uprawnienia pozwalają od razu zatwierdzić wniosek."],
+  "Create booking": ["Vytvořit rezervaci", "Vytvoriť rezerváciu", "Utwórz rezerwację"],
+  "Default public page language": ["Výchozí jazyk veřejné stránky", "Predvolený jazyk verejnej stránky", "Domyślny język strony publicznej"],
+  "Default currency": ["Výchozí měna", "Predvolená mena", "Domyślna waluta"],
+  "Default currency applies to new services. Existing prices are not converted.": ["Výchozí měna se použije u nových služeb. Ceny existujících služeb se automaticky nepřepočítávají.", "Predvolená mena platí pre nové služby. Existujúce ceny sa neprepočítavajú.", "Domyślna waluta dotyczy nowych usług. Dotychczasowe ceny nie są automatycznie przeliczane."],
+  "Enter the hours the employee will work on this day.": ["Zadejte intervaly, kdy tento den pracovník bude pracovat.", "Zadajte intervaly, kedy bude pracovník pracovať.", "Podaj godziny, w których pracownik będzie pracować tego dnia."],
+  "Reject": ["Zamítnout", "Zamietnuť", "Odrzuć"],
+  "Rejected": ["Zamítnuto", "Zamietnuté", "Odrzucono"],
+  "No requests yet.": ["Zatím žádné žádosti.", "Zatiaľ žiadne žiadosti.", "Brak wniosków."],
+  "Change saved.": ["Změna byla uložena.", "Zmena bola uložená.", "Zmiana zapisana."],
+  "Shift change": ["Změna směny", "Zmena smeny", "Zmiana grafiku"],
+  "Pending approval": ["Čeká na schválení", "Čaká na schválenie", "Oczekuje na zatwierdzenie"],
+  "Request submitted.": ["Žádost byla odeslána.", "Žiadosť bola odoslaná.", "Wniosek wysłany."],
+  "Your request will be sent to a manager for approval.": ["Žádost odešlete ke schválení vedoucímu.", "Žiadosť sa odošle vedúcemu na schválenie.", "Wniosek zostanie wysłany przełożonemu do zatwierdzenia."],
+  "Requests": ["Žádosti", "Žiadosti", "Wnioski"],
+  "Time off and shift change requests": ["Žádosti o volno a změny směn", "Žiadosti o voľno a zmeny smien", "Wnioski o wolne i zmiany grafiku"],
+  "You can add multiple time intervals for each day.": ["Pro každý den můžeš zadat více intervalů.", "Pre každý deň môžeš zadať viac intervalov.", "Dla każdego dnia możesz dodać kilka przedziałów."],
+  "Remove": ["Odebrat", "Odobrať", "Usuń"],
+  "Day off / closed": ["Volno / zavřeno", "Voľno / zatvorené", "Wolne / zamknięte"],
+  "Save schedule": ["Uložit rozvrh", "Uložiť rozvrh", "Zapisz harmonogram"],
+  "The server checks overlapping employee shifts across locations. A conflict returns HTTP 409.": ["Backend kontroluje překryvy směn zaměstnance mezi pobočkami. Kolize se zobrazí jako chyba 409.", "Server kontroluje prekrývanie zmien zamestnanca medzi pobočkami. Kolízia sa zobrazí ako chyba 409.", "Serwer sprawdza nakładanie się zmian pracownika w różnych lokalizacjach. Konflikt zwróci błąd 409."],
+  "WORKSPACE": ["PRACOVNÍ PROSTOR", "PRACOVNÝ PRIESTOR", "PANEL PRACY"],
+  "Need help?": ["Potřebujete poradit?", "Potrebujete poradiť?", "Potrzebujesz pomocy?"],
+  "API documentation": ["API dokumentace", "Dokumentácia API", "Dokumentacja API"],
+  "Sign out": ["Odhlásit se", "Odhlásiť sa", "Wyloguj się"],
+  "Open menu": ["Otevřít nabídku", "Otvoriť ponuku", "Otwórz menu"],
+  "Workspace": ["Pracovní prostor", "Pracovný priestor", "Panel pracy"],
+  "Select organization": ["Vybrat organizaci", "Vybrať organizáciu", "Wybierz organizację"],
+  "Choose an organization": ["Vyberte organizaci", "Vyberte organizáciu", "Wybierz organizację"],
+  "If you're an employee, enter the organization ID. Only owners and administrators can view the organization list.": ["Pokud jste zaměstnanec, zadejte ID organizace. Seznam organizací je dostupný pouze majitelům a administrátorům.", "Ak ste zamestnanec, zadajte ID organizácie. Zoznam organizácií je dostupný len vlastníkom a správcom.", "Jeśli jesteś pracownikiem, wpisz ID organizacji. Lista organizacji jest dostępna tylko dla właścicieli i administratorów."],
+  "Organization ID": ["ID organizace", "ID organizácie", "ID organizacji"],
+  "Open": ["Otevřít", "Otvoriť", "Otwórz"],
+  "The organization list is unavailable for this account. You can enter an ID manually.": ["Seznam organizací není pro tento účet dostupný. Můžete zadat ID ručně.", "Zoznam organizácií nie je pre tento účet dostupný. ID môžete zadať ručne.", "Lista organizacji jest niedostępna dla tego konta. Możesz wpisać ID ręcznie."],
+  "Change organization": ["Změnit organizaci", "Zmeniť organizáciu", "Zmień organizację"],
+  "Image uploaded.": ["Obrázek byl nahrán.", "Obrázok bol nahraný.", "Zdjęcie zostało przesłane."],
+  "Photos": ["Fotografie", "Fotografie", "Zdjęcia"],
+  "JPEG or PNG up to 10 MB. Images are securely uploaded through the backend.": ["JPEG nebo PNG do 10 MB. Obrázky se bezpečně ukládají přes backend.", "JPEG alebo PNG do 10 MB. Obrázky sa bezpečne ukladajú cez server.", "JPEG lub PNG do 10 MB. Obrazy są bezpiecznie przesyłane przez serwer."],
+  "Upload image": ["Nahrát obrázek", "Nahrať obrázok", "Prześlij zdjęcie"],
+  "No photos yet": ["Zatím žádné fotografie", "Zatiaľ žiadne fotografie", "Brak zdjęć"],
+  "No photo has been added yet. You can upload one later.": ["Fotografie zatím nebyla přidána. Můžete ji nahrát, až budete chtít.", "Fotografia zatiaľ nebola pridaná. Môžete ju nahrať, keď budete chcieť.", "Nie dodano jeszcze zdjęcia. Możesz je przesłać, gdy będziesz gotowy."],
+  "Primary": ["Hlavní", "Hlavná", "Główne"],
+  "Set as primary": ["Nastavit jako hlavní", "Nastaviť ako hlavnú", "Ustaw jako główne"],
+  "Remove photo": ["Odebrat fotografii", "Odobrať fotografiu", "Usuń zdjęcie"],
+  "Remove photo?": ["Odebrat fotografii?", "Odobrať fotografiu?", "Usunąć zdjęcie?"],
+  "Removing a photo unlinks it. You can delete the unused file later in media management.": ["Při odebrání se odstraní vazba fotografie. Nepoužívaný soubor lze následně odstranit ve správě médií.", "Odstránením sa zruší priradenie fotografie. Nepoužívaný súbor môžete následne vymazať v správe médií.", "Usunięcie odłącza zdjęcie. Nieużywany plik można następnie usunąć w zarządzaniu mediami."],
+  "Close": ["Zavřít", "Zavrieť", "Zamknij"],
+  "Clear": ["Vymazat", "Vymazať", "Wyczyść"],
+  "Previous": ["Předchozí", "Predchádzajúca", "Poprzednia"],
+  "Page": ["Strana", "Strana", "Strona"],
+  "of": ["z", "z", "z"],
+  "Next": ["Další", "Ďalšia", "Następna"],
+  "Cancel": ["Zrušit", "Zrušiť", "Anuluj"],
+  "Back to home": ["Zpět na úvod", "Späť na úvod", "Powrót na stronę główną"],
+  "ONLINE BOOKING": ["ONLINE REZERVACE", "ONLINE REZERVÁCIE", "REZERWACJE ONLINE"],
+  "Choose a service and a time that suits you. It only takes a moment.": ["Vyberte si službu a čas, který vám vyhovuje. Hotovo během pár okamžiků.", "Vyberte si službu a čas, ktorý vám vyhovuje. Hotovo za pár okamihov.", "Wybierz usługę i dogodny termin. To zajmie tylko chwilę."],
+  "Check the organization's public UUID and server availability.": ["Zkontrolujte veřejné UUID organizace a dostupnost backendu.", "Skontrolujte verejné UUID organizácie a dostupnosť servera.", "Sprawdź publiczny identyfikator UUID organizacji i dostępność serwera."],
+  "Bookings are temporarily paused": ["Rezervace jsou dočasně pozastavené", "Rezervácie sú dočasne pozastavené", "Rezerwacje są tymczasowo wstrzymane"],
+  "Contact the business.": ["Kontaktujte provozovnu.", "Kontaktujte prevádzku.", "Skontaktuj się z lokalem."],
+  "STEP 01": ["KROK 01", "KROK 01", "KROK 01"],
+  "STEP 02": ["KROK 02", "KROK 02", "KROK 02"],
+  "STEP 03": ["KROK 03", "KROK 03", "KROK 03"],
+  "STEP 04": ["KROK 04", "KROK 04", "KROK 04"],
+  "Where will you visit us?": ["Kde nás navštívíte?", "Kde nás navštívite?", "Gdzie nas odwiedzisz?"],
+  "Choose the location that suits you best.": ["Vyberte pobočku, která vám nejlépe vyhovuje.", "Vyberte pobočku, ktorá vám najviac vyhovuje.", "Wybierz najdogodniejszą lokalizację."],
+  "No available locations": ["Žádné dostupné pobočky", "Žiadne dostupné pobočky", "Brak dostępnych lokalizacji"],
+  "Which service would you like?": ["Jakou službu si přejete?", "Akú službu si želáte?", "Jakiej usługi potrzebujesz?"],
+  "Choose a service at": ["Vyberte službu z nabídky pobočky", "Vyberte službu z ponuky pobočky", "Wybierz usługę z oferty lokalizacji"],
+  "Planned booking date": ["Datum plánované rezervace", "Dátum plánovanej rezervácie", "Data planowanej rezerwacji"],
+  "No services at this location yet": ["Pro tuto pobočku zatím nejsou služby", "Pre túto pobočku zatiaľ nie sú služby", "Brak usług w tej lokalizacji"],
+  "An administrator must assign services to this location and configure valid pricing.": ["Správce musí přiřadit služby k pobočce a nastavit jejich platnou cenovou verzi.", "Správca musí priradiť služby k pobočke a nastaviť platnú cenovú verziu.", "Administrator musi przypisać usługi do lokalizacji i ustawić aktualny cennik."],
+  "Choose date and time": ["Vyberte datum a čas", "Vyberte dátum a čas", "Wybierz datę i godzinę"],
+  "Find a time that works for you.": ["Najděte si termín, který se vám hodí.", "Nájdite si termín, ktorý vám vyhovuje.", "Znajdź dogodny termin."],
+  "Previous day": ["Předchozí den", "Predchádzajúci deň", "Poprzedni dzień"],
+  "Next day": ["Další den", "Ďalší deň", "Następny dzień"],
+  "Choose date": ["Vybrat datum", "Vybrať dátum", "Wybierz datę"],
+  "Party size": ["Počet osob", "Počet osôb", "Liczba osób"],
+  "We'll find a suitable space for your group.": ["Najdeme vhodný prostor pro vaši skupinu.", "Nájdeme vhodný priestor pre vašu skupinu.", "Znajdziemy odpowiednie miejsce dla Twojej grupy."],
+  "Fewer people": ["Méně osob", "Menej osôb", "Mniej osób"],
+  "More people": ["Více osob", "Viac osôb", "Więcej osób"],
+  "Quantity": ["Počet kusů", "Počet kusov", "Liczba sztuk"],
+  "How many items do you need?": ["Kolik kusů vybavení potřebujete?", "Koľko kusov vybavenia potrebujete?", "Ile sztuk sprzętu potrzebujesz?"],
+  "Available start times": ["Dostupné začátky", "Dostupné začiatky", "Dostępne godziny rozpoczęcia"],
+  "Finding available times…": ["Hledám termíny…", "Hľadám termíny…", "Szukam terminów…"],
+  "No availability on this day": ["Pro tento den nejsou volné termíny", "Na tento deň nie sú voľné termíny", "Brak wolnych terminów w tym dniu"],
+  "Try another date or location.": ["Zkuste jiné datum nebo pobočku.", "Skúste iný dátum alebo pobočku.", "Spróbuj innej daty lub lokalizacji."],
+  "For variable-duration services, resource requirements must be configured in the admin area.": ["Pro službu s volitelnou délkou je potřeba v administraci nastavit požadavky na zdroje.", "Pre službu s voliteľnou dĺžkou treba v administrácii nastaviť požiadavky na zdroje.", "Dla usługi o zmiennym czasie trwania należy skonfigurować wymagania dotyczące zasobów."],
+  "Choose a staff member": ["Vyberte pracovníka", "Vyberte pracovníka", "Wybierz pracownika"],
+  "Return date and time": ["Datum a čas vrácení", "Dátum a čas vrátenia", "Data i godzina zwrotu"],
+  "For rentals, select the end of the rental period. Availability is checked when you submit.": ["U půjčoven zvolte konec pronájmu. Finální dostupnost se ověří při odeslání.", "Pri požičovniach zvoľte koniec prenájmu. Dostupnosť sa overí pri odoslaní.", "Wybierz koniec okresu wypożyczenia. Dostępność zostanie sprawdzona przy potwierdzeniu."],
+  "Return date": ["Datum vrácení", "Dátum vrátenia", "Data zwrotu"],
+  "Return time": ["Čas vrácení", "Čas vrátenia", "Godzina zwrotu"],
+  "Availability will be checked again on confirmation. The slot may be taken in the meantime.": ["Termín se při potvrzení znovu ověří. Může se mezitím obsadit.", "Termín sa pri potvrdení znova overí. Medzitým sa môže obsadiť.", "Dostępność zostanie ponownie sprawdzona przy potwierdzeniu. Termin może zostać zajęty."],
+  "Just a few details": ["Ještě pár údajů", "Ešte pár údajov", "Jeszcze kilka danych"],
+  "Where can we send your booking confirmation?": ["Kam vám můžeme poslat potvrzení rezervace?", "Kam vám môžeme poslať potvrdenie rezervácie?", "Gdzie możemy wysłać potwierdzenie rezerwacji?"],
+  "Full name": ["Jméno a příjmení", "Meno a priezvisko", "Imię i nazwisko"],
+  "Email": ["E-mail", "E-mail", "E-mail"],
+  "Your details will only be used to process your booking.": ["Vaše údaje budou použity pouze pro zpracování rezervace.", "Vaše údaje sa použijú iba na spracovanie rezervácie.", "Twoje dane będą wykorzystane wyłącznie do obsługi rezerwacji."],
+  "Confirm booking": ["Potvrdit rezervaci", "Potvrdiť rezerváciu", "Potwierdź rezerwację"],
+  "DONE!": ["HOTOVO!", "HOTOVO!", "GOTOWE!"],
+  "Booking confirmed": ["Rezervace je potvrzena", "Rezervácia je potvrdená", "Rezerwacja potwierdzona"],
+  "Your booking number": ["Vaše rezervace číslo", "Vaša rezervácia číslo", "Twoja rezerwacja numer"],
+  "has been created successfully.": ["byla úspěšně vytvořena.", "bola úspešne vytvorená.", "została pomyślnie utworzona."],
+  "Date and time": ["Datum a čas", "Dátum a čas", "Data i godzina"],
+  "Location": ["Pobočka", "Pobočka", "Lokalizacja"],
+  "Service": ["Služba", "Služba", "Usługa"],
+  "Price": ["Cena", "Cena", "Cena"],
+  "Manage booking": ["Spravovat rezervaci", "Spravovať rezerváciu", "Zarządzaj rezerwacją"],
+  "Save the management link. It contains a private access token.": ["Odkaz na správu si uložte. Obsahuje tajný přístupový token.", "Odkaz na správu si uložte. Obsahuje tajný prístupový token.", "Zapisz link do zarządzania. Zawiera poufny token dostępu."],
+  "Back": ["Zpět", "Späť", "Wstecz"],
+  "Continue": ["Pokračovat", "Pokračovať", "Dalej"],
+  "YOUR BOOKING": ["VAŠE REZERVACE", "VAŠA REZERVÁCIA", "TWOJA REZERWACJA"],
+  "Booking summary": ["Souhrn objednávky", "Súhrn objednávky", "Podsumowanie zamówienia"],
+  "Appointment": ["Termín", "Termín", "Termin"],
+  "Total price": ["Celková cena", "Celková cena", "Łączna cena"],
+  "Secure booking without registration": ["Bezpečná rezervace bez registrace", "Bezpečná rezervácia bez registrácie", "Bezpieczna rezerwacja bez rejestracji"],
+  "Booking system": ["Rezervační systém", "Rezervačný systém", "System rezerwacji"],
+  "View your booking status or cancel your reservation here.": ["Zde můžete zobrazit stav své rezervace nebo ji zrušit.", "Tu si môžete pozrieť stav rezervácie alebo ju zrušiť.", "Tutaj możesz sprawdzić status rezerwacji lub ją anulować."],
+  "Booking #": ["Rezervace #", "Rezervácia #", "Rezerwacja #"],
+  "Name": ["Jméno", "Meno", "Imię"],
+  "Booking cancelled.": ["Rezervace byla zrušena.", "Rezervácia bola zrušená.", "Rezerwacja została anulowana."],
+  "Cancel booking": ["Zrušit rezervaci", "Zrušiť rezerváciu", "Anuluj rezerwację"],
+  "Keep the link to this page private.": ["Odkaz na tuto stránku uchovávejte v soukromí.", "Odkaz na túto stránku uchovávajte v súkromí.", "Zachowaj link do tej strony w tajemnicy."],
+  "CAPACITY & EQUIPMENT": ["KAPACITY A VYBAVENÍ", "KAPACITY A VYBAVENIE", "ZASOBY I WYPOSAŻENIE"],
+  "Resources": ["Zdroje", "Zdroje", "Zasoby"],
+  "Manage bookable staff, rooms, tables, and equipment.": ["Spravujte bookanearvatelné pracovníky, místnosti, stoly a vybavení.", "Spravujte bookanearvateľných pracovníkov, miestnosti, stoly a vybavenie.", "Zarządzaj pracownikami, pomieszczeniami, stolikami i wyposażeniem."],
+  "Resource types": ["Typy zdrojů", "Typy zdrojov", "Typy zasobów"],
+  "Choose location": ["Vyberte pobočku", "Vyberte pobočku", "Wybierz lokalizację"],
+  "resources": ["zdrojů", "zdrojov", "zasobów"],
+  "Its bookable resources will appear here.": ["Zobrazí se její bookanearvatelné zdroje.", "Zobrazia sa jej bookanearvateľné zdroje.", "Wyświetlą się dostępne zasoby tej lokalizacji."],
+  "No resources yet": ["Zatím žádné zdroje", "Zatiaľ žiadne zdroje", "Brak zasobów"],
+  "Add your first table, staff member, or equipment.": ["Přidejte první stůl, pracovníka nebo vybavení.", "Pridajte prvý stôl, pracovníka alebo vybavenie.", "Dodaj pierwszy stolik, pracownika lub sprzęt."],
+  "Resource": ["Zdroj", "Zdroj", "Zasób"],
+  "Type": ["Typ", "Typ", "Typ"],
+  "Capacity": ["Kapacita", "Kapacita", "Pojemność"],
+  "Status": ["Stav", "Stav", "Status"],
+  "Edit": ["Upravit", "Upraviť", "Edytuj"],
+  "No resource types yet": ["Zatím žádné typy zdrojů", "Zatiaľ žiadne typy zdrojov", "Brak typów zasobów"],
+  "Category": ["Kategorie", "Kategória", "Kategoria"],
+  "Resource type": ["Typ zdroje", "Typ zdroja", "Typ zasobu"],
+  "Select type": ["Vyberte typ", "Vyberte typ", "Wybierz typ"],
+  "Employee ID": ["ID zaměstnance", "ID zamestnanca", "ID pracownika"],
+  "The staff member must be assigned to this location.": ["Pracovník musí být přiřazen této pobočce.", "Pracovník musí byť priradený k tejto pobočke.", "Pracownik musi być przypisany do tej lokalizacji."],
+  "Inventory code (optional)": ["Inventární kód (volitelné)", "Inventárny kód (voliteľné)", "Kod inwentarzowy (opcjonalnie)"],
+  "Available": ["Dostupný", "Dostupný", "Dostępny"],
+  "Maintenance": ["Údržba", "Údržba", "Konserwacja"],
+  "Retired": ["Vyřazený", "Vyradený", "Wycofany"],
+  "Activity": ["Aktivita", "Aktivita", "Aktywność"],
+  "Active": ["Aktivní", "Aktívny", "Aktywny"],
+  "Inactive": ["Neaktivní", "Neaktívny", "Nieaktywny"],
+  "Type name": ["Název typu", "Názov typu", "Nazwa typu"],
+  "CUSTOMER DATABASE": ["ZÁKAZNICKÁ DATABÁZE", "DATABÁZA ZÁKAZNÍKOV", "BAZA KLIENTÓW"],
+  "Contacts and notes to help you care for customers.": ["Kontakty a poznámky pro lepší péči o zákazníky.", "Kontakty a poznámky pre lepšiu starostlivosť o zákazníkov.", "Kontakty i notatki pomagające w obsłudze klientów."],
+  "New customer": ["Nový zákazník", "Nový zákazník", "Nowy klient"],
+  "Search name, email…": ["Hledat jméno, e-mail…", "Hľadať meno, e-mail…", "Szukaj imienia, e-maila…"],
+  "customers": ["zákazníků", "zákazníkov", "klientów"],
+  "No customers yet": ["Zatím žádní zákazníci", "Zatiaľ žiadni zákazníci", "Brak klientów"],
+  "Customers will appear here when added.": ["Zákazníci se zde zobrazí po přidání.", "Zákazníci sa tu zobrazia po pridaní.", "Klienci pojawią się tutaj po dodaniu."],
+  "No records match your search.": ["Zadané podmínce neodpovídá žádný záznam.", "Zadanému vyhľadávaniu nezodpovedá žiadny záznam.", "Żaden rekord nie pasuje do podanych kryteriów."],
+  "No records match the selected criteria.": ["Zadané podmínce neodpovídá žádný záznam.", "Zadanému filtru neodpovedá žiadny záznam.", "Żaden rekord nie pasuje do wybranych kryteriów."],
+  "Customer": ["Zákazník", "Zákazník", "Klient"],
+  "Phone": ["Telefon", "Telefón", "Telefon"],
+  "Internal note": ["Interní poznámka", "Interná poznámka", "Notatka wewnętrzna"],
+  "STAFF & SHIFTS": ["LIDÉ A SMĚNY", "ĽUDIA A ZMENY", "ZESPÓŁ I ZMIANY"],
+  "Your team": ["Váš tým", "Váš tím", "Twój zespół"],
+  "Employees can work at multiple locations. Shifts must not overlap.": ["Zaměstnanci mohou pracovat na více pobočkách. Směny se nesmí překrývat.", "Zamestnanci môžu pracovať na viacerých pobočkách. Zmeny sa nesmú prekrývať.", "Pracownicy mogą pracować w wielu lokalizacjach. Zmiany nie mogą się nakładać."],
+  "Add employee": ["Přidat zaměstnance", "Pridať zamestnanca", "Dodaj pracownika"],
+  "Search employees…": ["Hledat zaměstnance…", "Hľadať zamestnancov…", "Szukaj pracownika…"],
+  "team members": ["členů týmu", "členov tímu", "członków zespołu"],
+  "No employees yet": ["Žádní zaměstnanci", "Žiadni zamestnanci", "Brak pracowników"],
+  "Add your first team member.": ["Přidejte první člena týmu.", "Pridajte prvého člena tímu.", "Dodaj pierwszego członka zespołu."],
+  "Employee": ["Zaměstnanec", "Zamestnanec", "Pracownik"],
+  "Role": ["Role", "Rola", "Rola"],
+  "Schedule and services": ["Rozvrh a služby", "Rozvrh a služby", "Grafik i usługi"],
+  "Employee name": ["Jméno zaměstnance", "Meno zamestnanca", "Imię i nazwisko pracownika"],
+  "Administrator": ["Administrátor", "Administrátor", "Administrator"],
+  "Owner": ["Majitel", "Majiteľ", "Właściciel"],
+  "Creating an employee in the current API does not create a login account. The record is used for schedules and bookings.": ["Vytvoření zaměstnance v aktuálním API nezakládá přihlašovací účet. Záznam slouží pro rozvrhy a rezervace.", "Vytvorenie zamestnanca v aktuálnom API nezakladá prihlasovací účet. Záznam slúži na rozvrhy a rezervácie.", "Utworzenie pracownika w obecnym API nie tworzy konta logowania. Rekord służy do grafików i rezerwacji."],
+  "Locations": ["Pobočky", "Pobočky", "Lokalizacje"],
+  "Services": ["Služby", "Služby", "Usługi"],
+  "Shifts": ["Směny", "Zmeny", "Zmiany"],
+  "Schedule location": ["Pobočka pro rozvrh", "Pobočka pre rozvrh", "Lokalizacja dla grafiku"],
+  "Choose a location. First assign it to the employee on the Locations tab.": ["Vyberte pobočku. Nejdříve ji přiřaďte zaměstnanci v záložce Pobočky.", "Vyberte pobočku. Najprv ju priraďte zamestnancovi na karte Pobočky.", "Wybierz lokalizację. Najpierw przypisz ją pracownikowi w zakładce Lokalizacje."],
+  "An employee can be assigned to multiple locations. Past bookings may prevent removing an assignment.": ["Zaměstnanec může být přiřazen více pobočkám. Historické rezervace mohou zabránit odebrání pobočky.", "Zamestnanec môže byť priradený k viacerým pobočkám. Historické rezervácie môžu zabrániť odobratiu pobočky.", "Pracownik może być przypisany do wielu lokalizacji. Historyczne rezerwacje mogą uniemożliwić usunięcie przypisania."],
+  "Save locations": ["Uložit pobočky", "Uložiť pobočky", "Zapisz lokalizacje"],
+  "Service assignment updated.": ["Přiřazení služby bylo změněno.", "Priradenie služby bolo zmenené.", "Przypisanie usługi zostało zmienione."],
+  "Save services": ["Uložit služby", "Uložiť služby", "Zapisz usługi"],
+  "Service assignments saved.": ["Přiřazení služeb bylo uloženo.", "Priradenia služieb boli uložené.", "Przypisania usług zostały zapisane."],
+  "Choose the services this employee provides.": ["Zvolte služby, které tento pracovník poskytuje.", "Zvoľte služby, ktoré tento pracovník poskytuje.", "Wybierz usługi świadczone przez tego pracownika."],
+  "BOOKING CENTER": ["REZERVAČNÍ CENTRUM", "REZERVAČNÉ CENTRUM", "CENTRUM REZERWACJI"],
+  "Bookings": ["Rezervace", "Rezervácie", "Rezerwacje"],
+  "Overview of appointments, customers, and booking statuses.": ["Přehled termínů, zákazníků a stavu všech rezervací.", "Prehľad termínov, zákazníkov a stavu všetkých rezervácií.", "Przegląd terminów, klientów i statusów rezerwacji."],
+  "Calendar": ["Kalendář", "Kalendár", "Kalendarz"],
+  "List": ["Seznam", "Zoznam", "Lista"],
+  "Name or email…": ["Jméno nebo e-mail…", "Meno alebo e-mail…", "Imię lub e-mail…"],
+  "Filter location": ["Filtrovat pobočku", "Filtrovať pobočku", "Filtruj lokalizację"],
+  "All locations": ["Všechny pobočky", "Všetky pobočky", "Wszystkie lokalizacje"],
+  "Booking status": ["Stav rezervace", "Stav rezervácie", "Status rezerwacji"],
+  "All statuses": ["Všechny stavy", "Všetky stavy", "Wszystkie statusy"],
+  "Confirmed": ["Potvrzené", "Potvrdené", "Potwierdzone"],
+  "Pending": ["Čekající", "Čakajúce", "Oczekujące"],
+  "Completed": ["Dokončené", "Dokončené", "Zakończone"],
+  "Cancelled": ["Zrušené", "Zrušené", "Anulowane"],
+  "No-show": ["Nedostavil se", "Nedostavil sa", "Nie pojawił się"],
+  "Today": ["Dnes", "Dnes", "Dziś"],
+  "No bookings": ["Žádné rezervace", "Žiadne rezervácie", "Brak rezerwacji"],
+  "Change the filters or wait for new bookings.": ["Změňte filtry nebo počkejte na nové rezervace.", "Zmeňte filtre alebo počkajte na nové rezervácie.", "Zmień filtry lub poczekaj na nowe rezerwacje."],
+  "Created": ["Vytvořeno", "Vytvorené", "Utworzono"],
+  "Amount": ["Částka", "Suma", "Kwota"],
+  "Details": ["Detail", "Detail", "Szczegóły"],
+  "Customer name": ["Jméno zákazníka", "Meno zákazníka", "Imię i nazwisko klienta"],
+  "Booking items": ["Položky rezervace", "Položky rezervácie", "Pozycje rezerwacji"],
+  "Service #": ["Služba #", "Služba #", "Usługa #"],
+  "The current API does not support changing booking status in the backoffice. This view is read-only.": ["Aktuální API neposkytuje backoffice endpoint pro změnu stavu rezervace. Zde je detail pouze pro čtení.", "Aktuálne API neposkytuje endpoint na zmenu stavu rezervácie. Detail je len na čítanie.", "Obecne API nie udostępnia funkcji zmiany statusu rezerwacji. Szczegóły są tylko do odczytu."],
+  "YOUR WORKSPACE": ["VÁŠ PRACOVNÍ PROSTOR", "VÁŠ PRACOVNÝ PRIESTOR", "TWÓJ PANEL PRACY"],
+  "Total bookings": ["Celkem rezervací", "Celkom rezervácií", "Łącznie rezerwacji"],
+  "Confirmed (on page)": ["Potvrzené (na stránce)", "Potvrdené (na stránke)", "Potwierdzone (na stronie)"],
+  "Team members": ["Členové týmu", "Členovia tímu", "Członkowie zespołu"],
+  "ACTIVITY": ["AKTIVITA", "AKTIVITA", "AKTYWNOŚĆ"],
+  "Recent bookings": ["Poslední rezervace", "Posledné rezervácie", "Ostatnie rezerwacje"],
+  "View all": ["Zobrazit vše", "Zobraziť všetko", "Zobacz wszystkie"],
+  "No bookings yet": ["Zatím žádné rezervace", "Zatiaľ žiadne rezervácie", "Brak rezerwacji"],
+  "New bookings will appear here.": ["Nové rezervace se zobrazí tady.", "Nové rezervácie sa zobrazia tu.", "Nowe rezerwacje pojawią się tutaj."],
+  "QUICK START": ["RYCHLÝ START", "RÝCHLY ŠTART", "SZYBKI START"],
+  "Start here": ["Začněte tady", "Začnite tu", "Zacznij tutaj"],
+  "Add location": ["Přidat pobočku", "Pridať pobočku", "Dodaj lokalizację"],
+  "Addresses and opening hours": ["Adresy a otevírací doba", "Adresy a otváracie hodiny", "Adresy i godziny otwarcia"],
+  "Set up services": ["Nastavit služby", "Nastaviť služby", "Skonfiguruj usługi"],
+  "Prices and booking duration": ["Ceny a délka rezervací", "Ceny a dĺžka rezervácií", "Ceny i czas trwania rezerwacji"],
+  "Plan shifts": ["Naplánovat směny", "Naplánovať zmeny", "Zaplanuj zmiany"],
+  "Employee working hours": ["Pracovní doba zaměstnanců", "Pracovný čas zamestnancov", "Godziny pracy pracowników"],
+  "Public booking page": ["Veřejná rezervační stránka", "Verejná rezervačná stránka", "Publiczna strona rezerwacji"],
+  "Share the link so customers can book themselves.": ["Sdílejte odkaz, aby se zákazníci mohli sami objednat.", "Zdieľajte odkaz, aby sa zákazníci mohli sami objednať.", "Udostępnij link, aby klienci mogli samodzielnie rezerwować."],
+  "Open booking website": ["Otevřít rezervační web", "Otvoriť rezervačný web", "Otwórz stronę rezerwacji"],
+  "Find the public UUID in organization settings.": ["Veřejné UUID najdete v nastavení organizace.", "Verejné UUID nájdete v nastaveniach organizácie.", "Publiczny UUID znajdziesz w ustawieniach organizacji."],
+  "The service list is unavailable for this account.": ["Seznam služeb není pro tento účet dostupný.", "Zoznam služieb nie je pre tento účet dostupný.", "Lista usług jest niedostępna dla tego konta."],
+  "Organization settings saved.": ["Nastavení organizace bylo uloženo.", "Nastavenia organizácie boli uložené.", "Ustawienia organizacji zostały zapisane."],
+  "ORGANIZATION": ["ORGANIZACE", "ORGANIZÁCIA", "ORGANIZACJA"],
+  "Settings": ["Nastavení", "Nastavenia", "Ustawienia"],
+  "Organization": ["Organizace", "Organizácia", "Organizacja"],
+  "User": ["Uživatel", "Používateľ", "Użytkownik"],
+  "Organization profile, public booking page, and photos.": ["Profil organizace, veřejná rezervační stránka a fotografie.", "Profil organizácie, verejná rezervačná stránka a fotografie.", "Profil organizacji, publiczna strona rezerwacji i zdjęcia."],
+  "Profile": ["Profil", "Profil", "Profil"],
+  "Photos and logo": ["Fotografie a logo", "Fotografie a logo", "Zdjęcia i logo"],
+  "Organization details": ["Údaje organizace", "Údaje organizácie", "Dane organizacji"],
+  "This information is used to manage your business.": ["Tyto informace slouží pro správu provozu.", "Tieto informácie slúžia na správu prevádzky.", "Te informacje służą do zarządzania działalnością."],
+  "Organization name": ["Název organizace", "Názov organizácie", "Nazwa organizacji"],
+  "Contact email": ["Kontaktní e-mail", "Kontaktný e-mail", "Kontaktowy e-mail"],
+  "Default time zone": ["Výchozí časové pásmo", "Predvolené časové pásmo", "Domyślna strefa czasowa"],
+  "Public bookings": ["Veřejné rezervace", "Verejné rezervácie", "Rezerwacje publiczne"],
+  "Enabled": ["Povoleny", "Povolené", "Włączone"],
+  "Paused": ["Pozastaveny", "Pozastavené", "Wstrzymane"],
+  "Save settings": ["Uložit nastavení", "Uložiť nastavenia", "Zapisz ustawienia"],
+  "FOR CUSTOMERS": ["PRO ZÁKAZNÍKY", "PRE ZÁKAZNÍKOV", "DLA KLIENTÓW"],
+  "Booking link": ["Rezervační odkaz", "Rezervačný odkaz", "Link do rezerwacji"],
+  "Share your organization's public link.": ["Sdílejte veřejný odkaz na vaši organizaci.", "Zdieľajte verejný odkaz na vašu organizáciu.", "Udostępnij publiczny link do swojej organizacji."],
+  "Copy": ["Kopírovat", "Kopírovať", "Kopiuj"],
+  "Public UUID is not available yet.": ["Veřejné UUID zatím není k dispozici.", "Verejné UUID zatiaľ nie je k dispozícii.", "Publiczny UUID nie jest jeszcze dostępny."],
+  "Project information": ["Informace o projektu", "Informácie o projekte", "Informacje o projekcie"],
+  "Registration status": ["Stav registrace", "Stav registrácie", "Status rejestracji"],
+  "Photos are stored through the backend in S3-compatible storage (Cloudflare R2).": ["Fotografie jsou ukládány přes backend do S3 kompatibilního úložiště (Cloudflare R2).", "Fotografie sa ukladajú cez server do úložiska kompatibilného s S3 (Cloudflare R2).", "Zdjęcia są zapisywane przez serwer w pamięci zgodnej z S3 (Cloudflare R2)."],
+  "Enter a valid public organization UUID.": ["Zadejte platné veřejné UUID organizace.", "Zadajte platné verejné UUID organizácie.", "Wpisz poprawny publiczny UUID organizacji."],
+  "How it works": ["Jak to funguje", "Ako to funguje", "Jak to działa"],
+  "Features": ["Funkce", "Funkcie", "Funkcje"],
+  "Sign in": ["Přihlášení", "Prihlásenie", "Logowanie"],
+  "Get started free": ["Začít zdarma", "Začať zadarmo", "Zacznij za darmo"],
+  "Bookings without the chaos": ["Rezervace bez chaosu", "Rezervácie bez chaosu", "Rezerwacje bez chaosu"],
+  "Your business.": ["Váš provoz.", "Vaša prevádzka.", "Twój biznes."],
+  "Your time.": ["Váš čas.", "Váš čas.", "Twój czas."],
+  "Your rules.": ["Vaše pravidla.", "Vaše pravidlá.", "Twoje zasady."],
+  "A simple booking system for salons, studios, restaurants, and rentals. Manage everything in one place and offer customers easy online bookings.": ["Jednoduchý rezervační systém pro salony, studia, restaurace i půjčovny. Spravujte vše z jednoho místa a dopřejte zákazníkům pohodlné online rezervace.", "Jednoduchý rezervačný systém pre salóny, štúdiá, reštaurácie aj požičovne. Spravujte všetko z jedného miesta a doprajte zákazníkom pohodlné online rezervácie.", "Prosty system rezerwacji dla salonów, studiów, restauracji i wypożyczalni. Zarządzaj wszystkim w jednym miejscu i zaoferuj klientom wygodne rezerwacje online."],
+  "Create organization": ["Založit organizaci", "Založiť organizáciu", "Utwórz organizację"],
+  "Explore features": ["Prohlédnout funkce", "Pozrieť funkcie", "Zobacz funkcje"],
+  "Multiple locations": ["Více poboček", "Viac pobočiek", "Wiele lokalizacji"],
+  "Flexible services": ["Flexibilní služby", "Flexibilné služby", "Elastyczne usługi"],
+  "Online booking": ["Online rezervace", "Online rezervácie", "Rezerwacje online"],
+  "Bookanear / Overview": ["Bookanear / Přehled", "Bookanear / Prehľad", "Bookanear / Przegląd"],
+  "OVERVIEW": ["PŘEHLED", "PREHĽAD", "PRZEGLĄD"],
+  "Hello, Jana 👋": ["Dobrý den, Jano 👋", "Dobrý deň, Jana 👋", "Dzień dobry, Jano 👋"],
+  "Today's bookings": ["Dnešní rezervace", "Dnešné rezervácie", "Dzisiejsze rezerwacje"],
+  "Active locations": ["Aktivní pobočky", "Aktívne pobočky", "Aktywne lokalizacje"],
+  "Weekly calendar": ["Týdenní kalendář", "Týždenný kalendár", "Kalendarz tygodniowy"],
+  "October 2026": ["Říjen 2026", "Október 2026", "Październik 2026"],
+  "New booking": ["Nová rezervace", "Nová rezervácia", "Nowa rezerwacja"],
+  "Haircut · today 14:30": ["Stříhání · dnes 14:30", "Strihanie · dnes 14:30", "Strzyżenie · dziś 14:30"],
+  "EVERYTHING IN ONE PLACE": ["VŠE NA JEDNOM MÍSTĚ", "VŠETKO NA JEDNOM MIESTE", "WSZYSTKO W JEDNYM MIEJSCU"],
+  "Room for your business to grow": ["Prostor pro růst vašeho podnikání", "Priestor pre rast vášho podnikania", "Miejsce na rozwój Twojego biznesu"],
+  "From your first booking to a network of locations, Bookanear grows with you.": ["Od první rezervace až po síť poboček. Bookanear roste společně s vámi.", "Od prvej rezervácie až po sieť pobočiek. Bookanear rastie spolu s vami.", "Od pierwszej rezerwacji po sieć lokalizacji. Bookanear rośnie razem z Tobą."],
+  "Hassle-free bookings": ["Rezervace bez starostí", "Rezervácie bez starostí", "Rezerwacje bez zmartwień"],
+  "Online appointments and a clear booking calendar for every location.": ["Online objednávání a přehledný kalendář rezervací pro každou pobočku.", "Online objednávanie a prehľadný kalendár rezervácií pre každú pobočku.", "Rezerwacje online i przejrzysty kalendarz dla każdej lokalizacji."],
+  "One organization, any number of locations, and custom opening hours.": ["Jedna organizace, libovolný počet provozoven a vlastní otevírací doba.", "Jedna organizácia, ľubovoľný počet prevádzok a vlastné otváracie hodiny.", "Jedna organizacja, dowolna liczba lokalizacji i indywidualne godziny otwarcia."],
+  "Staff schedules, services, and protection against overlapping shifts.": ["Rozvrhy zaměstnanců, služby a ochrana proti kolizím směn.", "Rozvrhy zamestnancov, služby a ochrana proti kolíziám zmien.", "Grafiki pracowników, usługi i ochrona przed nakładającymi się zmianami."],
+  "Flexible resources": ["Univerzální zdroje", "Univerzálne zdroje", "Uniwersalne zasoby"],
+  "Book hairdressers, tables, rooms, tools, and equipment.": ["Rezervujte kadeřníky, stoly, místnosti, nářadí i vybavení.", "Rezervujte kaderníkov, stoly, miestnosti, náradie aj vybavenie.", "Rezerwuj fryzjerów, stoliki, pomieszczenia, narzędzia i sprzęt."],
+  "Always up to date": ["Vždy aktuální", "Vždy aktuálne", "Zawsze aktualne"],
+  "Slots and capacity are checked when each booking is created.": ["Termíny a kapacity se kontrolují při vytváření každé rezervace.", "Termíny a kapacity sa kontrolujú pri vytváraní každej rezervácie.", "Terminy i dostępność są sprawdzane przy każdej rezerwacji."],
+  "Secure environment": ["Bezpečné prostředí", "Bezpečné prostredie", "Bezpieczne środowisko"],
+  "JWT login, permissions, and organization data isolation.": ["JWT přihlášení, oprávnění a oddělení dat jednotlivých organizací.", "JWT prihlásenie, oprávnenia a oddelenie dát jednotlivých organizácií.", "Logowanie JWT, uprawnienia i oddzielne dane organizacji."],
+  "CUSTOMER BOOKINGS": ["REZERVACE PRO ZÁKAZNÍKY", "REZERVÁCIE PRE ZÁKAZNÍKOV", "REZERWACJE DLA KLIENTÓW"],
+  "Have a link to your business?": ["Máte odkaz na svou provozovnu?", "Máte odkaz na svoju prevádzku?", "Masz link do swojego lokalu?"],
+  "Enter the public organization ID to open its booking page. No customer account required.": ["Zadejte veřejné ID organizace a otevřete její rezervační stránku. Není potřeba zákaznický účet.", "Zadajte verejné ID organizácie a otvorte jej rezervačnú stránku. Zákaznícky účet nie je potrebný.", "Wpisz publiczny identyfikator organizacji i otwórz stronę rezerwacji. Konto klienta nie jest wymagane."],
+  "Public organization UUID": ["Veřejné UUID organizace", "Verejné UUID organizácie", "Publiczny UUID organizacji"],
+  "Bookings that make sense.": ["Rezervace, které dávají smysl.", "Rezervácie, ktoré dávajú zmysel.", "Rezerwacje, które mają sens."],
+  "Admin →": ["Administrace →", "Administrácia →", "Administracja →"],
+  "LOCATION MANAGEMENT": ["SPRÁVA PROVOZU", "SPRÁVA PREVÁDZKY", "ZARZĄDZANIE LOKALIZACJAMI"],
+  "Manage locations, opening hours, services, and photos.": ["Spravujte provozovny, jejich otevírací dobu, nabídku služeb a fotografie.", "Spravujte prevádzky, ich otváracie hodiny, ponuku služieb a fotografie.", "Zarządzaj lokalizacjami, godzinami otwarcia, ofertą usług i zdjęciami."],
+  "New location": ["Nová pobočka", "Nová pobočka", "Nowa lokalizacja"],
+  "Search locations…": ["Hledat pobočku…", "Hľadať pobočku…", "Szukaj lokalizacji…"],
+  "locations": ["poboček", "pobočiek", "lokalizacji"],
+  "No locations yet": ["Žádné pobočky", "Žiadne pobočky", "Brak lokalizacji"],
+  "Add your first location.": ["Přidejte první provozovnu.", "Pridajte prvú prevádzku.", "Dodaj pierwszą lokalizację."],
+  "Address": ["Adresa", "Adresa", "Adres"],
+  "Time zone": ["Časové pásmo", "Časové pásmo", "Strefa czasowa"],
+  "Manage": ["Spravovat", "Spravovať", "Zarządzaj"],
+  "Location name": ["Název pobočky", "Názov pobočky", "Nazwa lokalizacji"],
+  "Opening hours": ["Otevírací doba", "Otváracie hodiny", "Godziny otwarcia"],
+  "Service offering": ["Nabídka služeb", "Ponuka služieb", "Oferta usług"],
+  "Select the services available at this location. Services cannot be booked publicly without an assignment.": ["Zaškrtněte služby dostupné na této pobočce. Bez přiřazení nelze službu veřejně bookanearvat.", "Zaškrtnite služby dostupné na tejto pobočke. Bez priradenia nie je možné službu verejne bookanearvať.", "Zaznacz usługi dostępne w tej lokalizacji. Bez przypisania usługa nie może być rezerwowana publicznie."],
+  "No services created yet": ["Zatím nejsou vytvořené služby", "Zatiaľ nie sú vytvorené služby", "Nie utworzono jeszcze usług"],
+  "Save assignments": ["Uložit přiřazení", "Uložiť priradenie", "Zapisz przypisanie"],
+  "CATALOG": ["KATALOG", "KATALÓG", "KATALOG"],
+  "Configure services, prices, duration, and required resources.": ["Nastavte nabídku, ceny, délku služeb a potřebné zdroje.", "Nastavte ponuku, ceny, dĺžku služieb a potrebné zdroje.", "Skonfiguruj ofertę, ceny, czas trwania usług i wymagane zasoby."],
+  "New service": ["Nová služba", "Nová služba", "Nowa usługa"],
+  "Search services…": ["Hledat službu…", "Hľadať službu…", "Szukaj usługi…"],
+  "services": ["služeb", "služieb", "usług"],
+  "No services yet": ["Žádné služby", "Žiadne služby", "Brak usług"],
+  "Create your first service.": ["Vytvořte svou první službu.", "Vytvorte svoju prvú službu.", "Utwórz pierwszą usługę."],
+  "Description": ["Popis", "Popis", "Opis"],
+  "Service name": ["Název služby", "Názov služby", "Nazwa usługi"],
+  "Prices and durations": ["Ceny a délky", "Ceny a dĺžky", "Ceny i czasy trwania"],
+  "Required resources": ["Potřebné zdroje", "Potrebné zdroje", "Wymagane zasoby"],
+  "Service version": ["Verze služby", "Verzia služby", "Wersja usługi"],
+  "Validity, price, and duration. Service versions are retained for history.": ["Platnost, cena a délka služby. Verze se historicky uchovávají.", "Platnosť, cena a dĺžka služby. Verzie sa historicky uchovávajú.", "Ważność, cena i czas trwania usługi. Wersje są przechowywane historycznie."],
+  "New version": ["Nová verze", "Nová verzia", "Nowa wersja"],
+  "Price and duration not set yet": ["Zatím není nastavena cena ani délka", "Zatiaľ nie je nastavená cena ani dĺžka", "Nie ustawiono ceny ani czasu trwania"],
+  "A valid version is required for public booking.": ["Bez platné verze nelze službu veřejně bookanearvat.", "Bez platnej verzie nie je možné službu verejne bookanearvať.", "Bez aktywnej wersji usługa nie może być rezerwowana publicznie."],
+  "· step": ["· krok", "· krok", "· krok"],
+  "min": ["min", "min", "min"],
+  "From": ["Od", "Od", "Od"],
+  "To": ["Do", "Do", "Do"],
+  "New pricing version": ["Nová cenová verze", "Nová cenová verzia", "Nowa wersja cennika"],
+  "Valid from": ["Platná od", "Platná od", "Ważna od"],
+  "Valid until (optional)": ["Platná do (nepovinné)", "Platná do (nepovinné)", "Ważna do (opcjonalnie)"],
+  "Currency": ["Měna", "Mena", "Waluta"],
+  "Duration mode": ["Režim délky", "Režim dĺžky", "Tryb czasu trwania"],
+  "Fixed duration": ["Pevná délka", "Pevná dĺžka", "Stały czas trwania"],
+  "Custom duration (rental)": ["Volitelná délka (půjčovna)", "Voliteľná dĺžka (požičovňa)", "Zmienny czas trwania (wypożyczalnia)"],
+  "Minimum duration (min)": ["Minimální délka (min)", "Minimálna dĺžka (min)", "Minimalny czas (min)"],
+  "Slot interval (min)": ["Krok termínů (min)", "Krok termínov (min)", "Odstęp terminów (min)"],
+  "Maximum duration (min)": ["Maximální délka (min)", "Maximálna dĺžka (min)", "Maksymalny czas (min)"],
+  "Maximum number of days in advance for bookings": ["Počet dnů dopředu, na které lze rezervovat", "Počet dní vopred, na ktoré možno rezervovať", "Maksymalna liczba dni, z jakim wyprzedzeniem można rezerwować"],
+  "Customers can book up to this many days ahead.": ["Zákazníci si mohou rezervovat nejvýše na tento počet dní dopředu.", "Zákazníci si môžu rezervovať najviac na tento počet dní vopred.", "Klienci mogą rezerwować z maksymalnie takim wyprzedzeniem."],
+  "PERSONAL ACCOUNT": ["OSOBNÍ ÚČET", "OSOBNÝ ÚČET", "KONTO OSOBISTE"],
+  "My account": ["Můj účet", "Môj účet", "Moje konto"],
+  "Manage your name, email address, and password.": ["Spravujte své jméno, e-mailovou adresu a heslo.", "Spravujte svoje meno, e-mailovú adresu a heslo.", "Zarządzaj swoim imieniem i nazwiskiem, adresem e-mail i hasłem."],
+  "Save name": ["Uložit jméno", "Uložiť meno", "Zapisz imię i nazwisko"],
+  "Your name has been updated.": ["Jméno bylo změněno.", "Meno bolo zmenené.", "Imię i nazwisko zostało zmienione."],
+  "Email address": ["E-mailová adresa", "E-mailová adresa", "Adres e-mail"],
+  "Current email": ["Současný e-mail", "Súčasný e-mail", "Obecny adres e-mail"],
+  "New email address": ["Nová e-mailová adresa", "Nová e-mailová adresa", "Nowy adres e-mail"],
+  "Current password": ["Současné heslo", "Súčasné heslo", "Obecne hasło"],
+  "Waiting for confirmation": ["Čeká na potvrzení", "Čaká na potvrdenie", "Oczekuje na potwierdzenie"],
+  "Check your new email address to confirm the change.": ["Změnu potvrďte odkazem, který jsme poslali na novou e-mailovou adresu.", "Zmenu potvrďte odkazom, ktorý sme poslali na novú e-mailovú adresu.", "Potwierdź zmianę za pomocą linku wysłanego na nowy adres e-mail."],
+  "We will change your email only after you confirm the link sent to the new address.": ["E-mail změníme až po potvrzení odkazu zaslaného na novou adresu.", "E-mail zmeníme až po potvrdení odkazu zaslaného na novú adresu.", "Zmienimy adres e-mail dopiero po potwierdzeniu linku wysłanego na nowy adres."],
+  "Send confirmation email": ["Poslat potvrzovací e-mail", "Poslať potvrdzovací e-mail", "Wyślij e-mail z potwierdzeniem"],
+  "Change password": ["Změna hesla", "Zmena hesla", "Zmiana hasła"],
+  "New password": ["Nové heslo", "Nové heslo", "Nowe hasło"],
+  "Changing your password signs you out of all sessions.": ["Po změně hesla budete odhlášeni ze všech zařízení.", "Po zmene hesla budete odhlásení zo všetkých zariadení.", "Po zmianie hasła nastąpi wylogowanie ze wszystkich sesji."],
+  "Update password": ["Změnit heslo", "Zmeniť heslo", "Zmień hasło"],
+  "Password updated. Please sign in again.": ["Heslo bylo změněno. Přihlaste se prosím znovu.", "Heslo bolo zmenené. Prihláste sa, prosím, znova.", "Hasło zostało zmienione. Zaloguj się ponownie."],
+  "Back to administration": ["Zpět do správy", "Späť do správy", "Wróć do panelu"],
+  "Confirm email change": ["Potvrzení změny e-mailu", "Potvrdenie zmeny e-mailu", "Potwierdzenie zmiany adresu e-mail"],
+  "Confirm the new email address for your Bookanear account.": ["Potvrďte novou e-mailovou adresu svého účtu Bookanear.", "Potvrďte novú e-mailovú adresu svojho účtu Bookanear.", "Potwierdź nowy adres e-mail konta Bookanear."],
+  "Confirm new email address": ["Potvrdit novou e-mailovou adresu", "Potvrdiť novú e-mailovú adresu", "Potwierdź nowy adres e-mail"],
+  "Your email address has been updated.": ["E-mailová adresa byla změněna.", "E-mailová adresa bola zmenená.", "Adres e-mail został zmieniony."],
+  "Setup before (min)": ["Příprava před (min)", "Príprava pred (min)", "Przygotowanie przed (min)"],
+  "Cleanup after (min)": ["Úklid po (min)", "Upratovanie po (min)", "Sprzątanie po (min)"],
+  "Version validity periods must not overlap. Close the previous open-ended version in the backend first.": ["Platnosti verzí se nesmí překrývat. U otevřené předchozí verze nejprve upravte její období v backendu.", "Platnosti verzií sa nesmú prekrývať. Pri otvorenej predchádzajúcej verzii najprv upravte jej obdobie na serveri.", "Okresy ważności wersji nie mogą się nakładać. Najpierw zamknij poprzednią wersję w backendzie."],
+  "Resource requirements saved.": ["Požadavky na zdroje byly uloženy.", "Požiadavky na zdroje boli uložené.", "Wymagania dotyczące zasobów zapisano."],
+  "Resource requirements": ["Požadavky na zdroje", "Požiadavky na zdroje", "Wymagania dotyczące zasobów"],
+  "For example, 1 hairdresser, 1 chair, or 2 pieces of equipment.": ["Např. 1 kadeřník, 1 křeslo nebo 2 kusy vybavení.", "Napr. 1 kaderník, 1 kreslo alebo 2 kusy vybavenia.", "Np. 1 fryzjer, 1 fotel lub 2 sztuki sprzętu."],
+  "Min. capacity": ["Min. kapacita", "Min. kapacita", "Min. pojemność"],
+  "+ Add requirement": ["+ Přidat požadavek", "+ Pridať požiadavku", "+ Dodaj wymaganie"],
+  "Universal bookings require at least one resource requirement. Without one, the legacy booking flow with a specific employee is used.": ["Pro univerzální rezervace musí být alespoň jeden požadavek. Bez požadavků se používá původní rezervace s konkrétním zaměstnancem.", "Pre univerzálne rezervácie musí byť aspoň jedna požiadavka. Bez požiadaviek sa používa pôvodná rezervácia s konkrétnym zamestnancom.", "Rezerwacje uniwersalne wymagają co najmniej jednego zasobu. Bez wymagań używana jest starsza rezerwacja z wybranym pracownikiem."],
+  "Save requirements": ["Uložit požadavky", "Uložiť požiadavky", "Zapisz wymagania"],
+  "Welcome back": ["Vítejte zpět", "Vitajte späť", "Witaj ponownie"],
+  "Enter password": ["Zadejte heslo", "Zadajte heslo", "Wpisz hasło"],
+  "your@email.com": ["vas@email.cz", "vas@email.sk", "twoj@email.pl"],
+  "e.g. Aurora Studio": ["Např. Studio Aurora", "Napr. Štúdio Aurora", "Np. Studio Aurora"],
+  "Jane Smith": ["Jana Nováková", "Jana Nováková", "Anna Kowalska"],
+  "Please fill out this field.": ["Vyplňte prosím toto pole.", "Vyplňte, prosím, toto pole.", "Wypełnij to pole."],
+  "Please enter a valid value.": ["Zadejte platnou hodnotu.", "Zadajte platnú hodnotu.", "Wpisz prawidłową wartość."],
+  "Please match the requested format.": ["Zadejte hodnotu v požadovaném formátu.", "Zadajte hodnotu v požadovanom formáte.", "Wpisz wartość w wymaganym formacie."],
+  "Please enter at least {count} characters.": ["Zadejte alespoň {count} znaků.", "Zadajte aspoň {count} znakov.", "Wpisz co najmniej {count} znaków."],
+  "Please enter a value greater than or equal to {value}.": ["Zadejte hodnotu větší nebo rovnou {value}.", "Zadajte hodnotu väčšiu alebo rovnú {value}.", "Wpisz wartość większą lub równą {value}."],
+  "Please enter a value less than or equal to {value}.": ["Zadejte hodnotu menší nebo rovnou {value}.", "Zadajte hodnotu menšiu alebo rovnú {value}.", "Wpisz wartość mniejszą lub równą {value}."],
+  "Don't have an account?": ["Nemáte účet?", "Nemáte účet?", "Nie masz konta?"],
+  "Registration successful. Check your email to verify your account.": ["Registrace proběhla. Zkontrolujte e-mail a potvrďte svůj účet.", "Registrácia prebehla. Skontrolujte e-mail a potvrďte svoj účet.", "Rejestracja zakończona. Sprawdź e-mail i potwierdź konto."],
+  "Start taking bookings": ["Začněte bookanearvat", "Začnite bookanearvať", "Zacznij przyjmować rezerwacje"],
+  "Your name": ["Vaše jméno", "Vaše meno", "Twoje imię i nazwisko"],
+  "Password (min. 8 characters)": ["Heslo (min. 8 znaků)", "Heslo (min. 8 znakov)", "Hasło (min. 8 znaków)"],
+  "Create account": ["Vytvořit účet", "Vytvoriť účet", "Utwórz konto"],
+  "Delete service": ["Smazat službu", "Odstrániť službu", "Usuń usługę"],
+  "Delete this service? Services used in reservations or waitlists cannot be deleted.": ["Smazat tuto službu? Služby použité v rezervacích nebo na čekací listině nelze smazat.", "Odstrániť túto službu? Služby použité v rezerváciách alebo na čakacej listine nemožno odstrániť.", "Usunąć tę usługę? Usług użytych w rezerwacjach lub na listach oczekujących nie można usunąć."],
+  "Already have an account?": ["Už máte účet?", "Už máte účet?", "Masz już konto?"],
+  "Email verification": ["Ověření e-mailu", "Overenie e-mailu", "Weryfikacja e-maila"],
+  "Account verified": ["Účet je ověřený", "Účet je overený", "Konto zweryfikowane"],
+  "You can now sign in to the admin area.": ["Nyní se můžete přihlásit do administrace.", "Teraz sa môžete prihlásiť do administrácie.", "Możesz teraz zalogować się do panelu administracyjnego."],
+  "Go to sign in": ["Přejít na přihlášení", "Prejsť na prihlásenie", "Przejdź do logowania"],
+  "Verification token": ["Ověřovací token", "Overovací token", "Token weryfikacyjny"],
+  "Token from email": ["Token z e-mailu", "Token z e-mailu", "Token z e-maila"],
+  "Verify email": ["Ověřit e-mail", "Overiť e-mail", "Zweryfikuj e-mail"],
+  "ONE PLACE FOR ALL BOOKINGS": ["JEDNO MÍSTO PRO VŠECHNY REZERVACE", "JEDNO MIESTO PRE VŠETKY REZERVÁCIE", "JEDNO MIEJSCE NA WSZYSTKIE REZERWACJE"],
+  "More time for": ["Více času na to,", "Viac času na to,", "Więcej czasu na to,"],
+  "what you love.": ["co vás baví.", "čo vás baví.", "co lubisz."],
+  "Bookings, locations, staff, and customers in one place.": ["Rezervace, pobočky, tým a zákazníci přehledně na jednom místě.", "Rezervácie, pobočky, tím a zákazníci prehľadne na jednom mieste.", "Rezerwacje, lokalizacje, zespół i klienci w jednym miejscu."],
+  "Secure data management": ["Bezpečná správa dat", "Bezpečná správa dát", "Bezpieczne zarządzanie danymi"],
+  "Everything under control": ["Vše pod kontrolou", "Všetko pod kontrolou", "Wszystko pod kontrolą"],
+  "Role-based access": ["Přístup podle rolí", "Prístup podľa rolí", "Dostęp według ról"],
+  "Home page": ["Úvodní stránka", "Úvodná stránka", "Strona główna"],
+  "Overview": ["Přehled", "Prehľad", "Przegląd"],
+  "Team & shifts": ["Tým a směny", "Tím a zmeny", "Zespół i zmiany"],
+  "Loading data…": ["Načítám data…", "Načítavam údaje…", "Ładowanie danych…"],
+  "Nothing here yet": ["Zatím tu nic není", "Zatiaľ tu nič nie je", "Na razie nic tu nie ma"],
+  "Search…": ["Hledat…", "Hľadať…", "Szukaj…"],
+  "Page {page} of {total}": ["Strana {page} z {total}", "Strana {page} z {total}", "Strona {page} z {total}"],
+  "Save changes": ["Uložit změny", "Uložiť zmeny", "Zapisz zmiany"],
+  "Add": ["Přidat", "Pridať", "Dodaj"],
+  "Save": ["Uložit", "Uložiť", "Zapisz"],
+  "An unexpected error occurred.": ["Nastala neočekávaná chyba.", "Nastala neočakávaná chyba.", "Wystąpił nieoczekiwany błąd."],
+  "Name or email": ["Jméno nebo e-mail", "Meno alebo e-mail", "Imię lub e-mail"],
+  "Not selected yet": ["Zatím nevybráno", "Zatiaľ nevybrané", "Jeszcze nie wybrano"],
+  "Address not provided": ["Adresa není uvedena", "Adresa nie je uvedená", "Nie podano adresu"],
+  "Professional service for you.": ["Profesionální služba pro vás.", "Profesionálna služba pre vás.", "Profesjonalna usługa dla Ciebie."],
+  "Custom duration": ["Délka dle výběru", "Dĺžka podľa výberu", "Dowolny czas trwania"],
+  "Book an appointment": ["Rezervace termínu", "Rezervácia termínu", "Rezerwacja terminu"],
+  "Choose service": ["Vyberte službu", "Vyberte službu", "Wybierz usługę"],
+  "Choose a time": ["Vyberte termín", "Vyberte termín", "Wybierz termin"],
+  "Contact details": ["Kontaktní údaje", "Kontaktné údaje", "Dane kontaktowe"],
+  "Confirmation": ["Potvrzení", "Potvrdenie", "Potwierdzenie"],
+  "Sign in to manage your business.": ["Přihlaste se do správy svého provozu.", "Prihláste sa do správy svojej prevádzky.", "Zaloguj się, aby zarządzać swoją działalnością."],
+  "Create an organization and set up your locations.": ["Vytvořte organizaci a nastavte své pobočky.", "Vytvorte organizáciu a nastavte svoje pobočky.", "Utwórz organizację i skonfiguruj lokalizacje."],
+  "Confirm your email address.": ["Potvrďte svou e-mailovou adresu.", "Potvrďte svoju e-mailovú adresu.", "Potwierdź swój adres e-mail."],
+  "Language": ["Jazyk", "Jazyk", "Język"],
+  "Color theme": ["Barevné schéma", "Farebná schéma", "Motyw kolorystyczny"],
+  "Appearance & language": ["Vzhled a jazyk", "Vzhľad a jazyk", "Wygląd i język"],
+  "Choose your interface language and admin color theme. Preferences are saved in this browser.": ["Zvolte jazyk rozhraní a barevné schéma administrace. Volby se uloží do tohoto prohlížeče.", "Zvoľte jazyk rozhrania a farebnú schému administrácie. Voľby sa uložia do tohto prehliadača.", "Wybierz język interfejsu i motyw kolorystyczny panelu. Ustawienia zostaną zapisane w tej przeglądarce."],
+  "Monday": ["Pondělí", "Pondelok", "Poniedziałek"],
+  "Tuesday": ["Úterý", "Utorok", "Wtorek"],
+  "Wednesday": ["Středa", "Streda", "Środa"],
+  "Thursday": ["Čtvrtek", "Štvrtok", "Czwartek"],
+  "Friday": ["Pátek", "Piatok", "Piątek"],
+  "Saturday": ["Sobota", "Sobota", "Sobota"],
+  "Sunday": ["Neděle", "Nedeľa", "Niedziela"],
+  "Hello 👋": ["Dobrý den 👋", "Dobrý deň 👋", "Dzień dobry 👋"],
+  "Complete all booking details.": ["Vyberte všechny údaje rezervace.", "Vyberte všetky údaje rezervácie.", "Wybierz wszystkie dane rezerwacji."],
+  "Choose a staff member.": ["Vyberte pracovníka.", "Vyberte pracovníka.", "Wybierz pracownika."],
+  "No staff member is available for this time.": ["Na tento termín není dostupný žádný pracovník.", "Na tento termín nie je dostupný žiadny pracovník.", "W tym terminie nie jest dostępny żaden pracownik."],
+  "The return time must be after the booking start.": ["Čas vrácení musí být po začátku rezervace.", "Čas vrátenia musí byť po začiatku rezervácie.", "Godzina zwrotu musi być późniejsza niż początek rezerwacji."],
+  "Use JPEG or PNG.": ["Použij JPEG nebo PNG.", "Použite JPEG alebo PNG.", "Użyj JPEG lub PNG."],
+  "The file exceeds 10 MB.": ["Soubor je větší než 10 MB.", "Súbor je väčší než 10 MB.", "Plik ma ponad 10 MB."],
+  "Schedule saved.": ["Rozvrh byl uložen.", "Rozvrh bol uložený.", "Grafik zapisany."],
+  "Working hours": ["Pracovní doba", "Pracovný čas", "Godziny pracy"],
+  "Edit customer": ["Upravit zákazníka", "Upraviť zákazníka", "Edytuj klienta"],
+  "Edit location": ["Upravit pobočku", "Upraviť pobočku", "Edytuj lokalizację"],
+  "Service offering saved.": ["Nabídka služeb byla uložena.", "Ponuka služieb bola uložená.", "Oferta usług została zapisana."],
+  "Edit employee": ["Upravit zaměstnance", "Upraviť zamestnanca", "Edytuj pracownika"],
+  "New employee": ["Nový zaměstnanec", "Nový zamestnanec", "Nowy pracownik"],
+  "Location assignments saved.": ["Přiřazení poboček uloženo.", "Priradenie pobočiek bolo uložené.", "Przypisania lokalizacji zapisane."],
+  "Space / table": ["Prostor / stůl", "Priestor / stôl", "Pomieszczenie / stolik"],
+  "Equipment": ["Vybavení", "Vybavenie", "Sprzęt"],
+  "Other": ["Ostatní", "Ostatné", "Inne"],
+  "New resource type": ["Nový typ zdroje", "Nový typ zdroja", "Nowy typ zasobu"],
+  "New resource": ["Nový zdroj", "Nový zdroj", "Nowy zasób"],
+  "Edit resource": ["Upravit zdroj", "Upraviť zdroj", "Edytuj zasób"],
+  "Edit resource type": ["Upravit typ zdroje", "Upraviť typ zdroja", "Edytuj typ zasobu"],
+  "Edit service": ["Upravit službu", "Upraviť službu", "Edytuj usługę"],
+  "Welcome to {organization}'s admin area. Here's an overview of what matters most.": ["Vítejte v administraci {organization}. Tady máte přehled toho nejdůležitějšího.", "Vitajte v administrácii {organization}. Tu máte prehľad toho najdôležitejšieho.", "Witaj w panelu organizacji {organization}. Oto przegląd najważniejszych informacji."],
+  "your organization": ["vaší organizace", "vašej organizácie", "Twojej organizacji"],
+  "Based on available records": ["Podle dostupných záznamů", "Podľa dostupných záznamov", "Na podstawie dostępnych danych"],
+  "From recently loaded bookings": ["Z posledních načtených rezervací", "Z posledných načítaných rezervácií", "Z ostatnio pobranych rezerwacji"],
+  "In organization": ["V organizaci", "V organizácii", "W organizacji"],
+  "Admin": ["Administrace", "Administrácia", "Administracja"],
+  "Unknown status": ["Neznámý stav", "Neznámy stav", "Nieznany status"],
+  "Unknown role": ["Neznámá role", "Neznáma rola", "Nieznana rola"],
+  "Check address on the map": ["Ověřit adresu na mapě", "Overiť adresu na mape", "Sprawdź adres na mapie"],
+  "Choose the correct location:": ["Vyberte správné místo:", "Vyberte správne miesto:", "Wybierz właściwe miejsce:"],
+  "Enter a fuller address including the city.": ["Zadejte úplnější adresu včetně obce.", "Zadajte úplnejšiu adresu vrátane obce.", "Wpisz dokładniejszy adres wraz z miejscowością."],
+  "Address not found. Add a city and building number.": ["Adresu se nepodařilo najít. Doplňte město a číslo domu nebo zkuste jiný zápis.", "Adresu sa nepodarilo nájsť. Doplňte mesto a číslo domu.", "Nie znaleziono adresu. Dodaj miasto i numer budynku."],
+  "Location selected": ["Poloha vybrána", "Poloha vybraná", "Wybrano lokalizację"],
+  "Open map": ["Otevřít mapu", "Otvoriť mapu", "Otwórz mapę"],
+  "Geocoding locates an address on a map; it does not verify postal deliverability.": ["Geokódování určuje polohu podle mapových dat, neověřuje oficiální doručitelnost adresy.", "Geokódovanie určuje polohu podľa mapových údajov, neoveruje doručiteľnosť adresy.", "Geokodowanie określa lokalizację na podstawie mapy, nie potwierdza adresu pocztowego."],
+  "Map": ["Mapa", "Mapa", "Mapa"],
+  "Show on map": ["Zobrazit na mapě", "Zobraziť na mape", "Pokaż na mapie"],
+  "Exceptions and holidays": ["Výjimky a svátky", "Výnimky a sviatky", "Wyjątki i święta"],
+  "Time off and exceptions": ["Volno a výjimky", "Voľno a výnimky", "Nieobecności i wyjątki"],
+  "Location for exception": ["Pobočka pro výjimku", "Pobočka pre výnimku", "Lokalizacja dla wyjątku"],
+  "Select a location to change a shift on a specific date.": ["Zvolte pobočku, ve které chcete změnit směnu v konkrétní den.", "Vyberte pobočku, kde chcete zmeniť zmenu v konkrétny deň.", "Wybierz lokalizację, w której chcesz zmienić grafik w danym dniu."],
+  "One-off shift changes": ["Jednorázové změny směn", "Jednorazové zmeny zmien", "Jednorazowe zmiany grafiku"],
+  "Holidays and special opening hours": ["Svátky a výjimečná otevírací doba", "Sviatky a výnimočné otváracie hodiny", "Święta i wyjątkowe godziny otwarcia"],
+  "Leave, sick days, shorter shifts or special hours for a worker.": ["Dovolená, nemoc, kratší směna či mimořádné hodiny konkrétního pracovníka.", "Dovolenka, choroba, kratšia zmena či mimoriadne hodiny pracovníka.", "Urlop, choroba, krótsza zmiana lub wyjątkowe godziny pracownika."],
+  "Close for a holiday, open exceptionally or shorten hours on a specific day.": ["Zavřeno o svátku, mimořádné otevření nebo kratší provoz na vybraný den.", "Zatvorené cez sviatok, mimoriadne otvorenie alebo skrátená prevádzka.", "Zamknięcie w święto, wyjątkowe otwarcie lub krótsze godziny pracy."],
+  "The change applies only to the selected date.": ["Změna platí jen ve vybraný den.", "Zmena platí len vo vybraný deň.", "Zmiana dotyczy tylko wybranego dnia."],
+  "Date": ["Datum", "Dátum", "Data"],
+  "Mode": ["Režim", "Režim", "Tryb"],
+  "Day off": ["Celý den volno", "Celý deň voľno", "Cały dzień wolny"],
+  "Closed all day": ["Celý den zavřeno", "Celý deň zatvorené", "Zamknięte cały dzień"],
+  "Custom hours": ["Vlastní intervaly", "Vlastné intervaly", "Własne przedziały godzinowe"],
+  "Add time interval": ["Přidat časový interval", "Pridať časový interval", "Dodaj przedział godzinowy"],
+  "Save exception": ["Uložit výjimku", "Uložiť výnimku", "Zapisz wyjątek"],
+  "Existing booking conflicts are checked first. Bookings are never automatically cancelled.": ["Před uložením se ověří kolize s existujícími rezervacemi. Rezervace se automaticky neruší. Výjimka nahrazuje týdenní rozvrh jen pro dané datum.", "Pred uložením sa skontrolujú kolízie s rezerváciami. Rezervácie sa automaticky nerušia.", "Przed zapisem sprawdzane są konflikty z rezerwacjami. Rezerwacje nie są automatycznie anulowane."],
+  "Planned exceptions (next 365 days)": ["Naplánované výjimky (následujících 365 dní)", "Naplánované výnimky (365 dní)", "Zaplanowane wyjątki (najbliższe 365 dni)"],
+  "No exceptions scheduled yet.": ["Zatím nemáte žádné výjimky.", "Zatiaľ nemáte žiadne výnimky.", "Nie masz jeszcze wyjątków."],
+  "Restore regular schedule": ["Vrátit běžný rozvrh", "Vrátiť bežný rozvrh", "Przywróć zwykły grafik"],
+  "Closed": ["Zavřeno", "Zatvorené", "Zamknięte"],
+  "Date cannot be in the past.": ["Datum nemůže být v minulosti.", "Dátum nemôže byť v minulosti.", "Data nie może być w przeszłości."],
+  "Check the times. Intervals cannot overlap.": ["Zkontrolujte časy. Intervaly se nesmějí překrývat a konec musí být později než začátek.", "Skontrolujte časy. Intervaly sa nesmú prekrývať.", "Sprawdź godziny. Przedziały nie mogą na siebie zachodzić."],
+  "Not saved.": ["Neuloženo.", "Neuložené.", "Nie zapisano."],
+  "Change or cancel affected bookings manually first.": ["Nejprve rezervace upravte nebo zrušte ručně.", "Najprv rezervácie upravte alebo zrušte ručne.", "Najpierw ręcznie zmień lub anuluj rezerwacje."],
+  "Other days are unchanged.": ["Ostatní dny beze změny.", "Ostatné dni bez zmeny.", "Pozostałe dni bez zmian."],
+  "Regular schedule restored.": ["Znovu platí běžný rozvrh.", "Znovu platí bežný rozvrh.", "Przywrócono zwykły grafik."],
+  "This would affect {count} existing bookings.": ["Změna by zasáhla {count} existujících rezervací.", "Zmena by zasiahla {count} existujúcich rezervácií.", "Zmiana wpłynęłaby na {count} istniejących rezerwacji."],
+  "Restoring the schedule would affect {count} bookings.": ["Vrácení rozvrhu by zasáhlo {count} rezervací.", "Obnovenie rozvrhu by zasiahlo {count} rezervácií.", "Przywrócenie grafiku wpłynęłoby na {count} rezerwacji."],
+  "Exception saved for {date}.": ["Výjimka pro {date} byla uložena.", "Výnimka pre {date} bola uložená.", "Zapisano wyjątek na {date}."],
+  "Regular schedule applies again on {date}.": ["Pro {date} opět platí běžný rozvrh.", "Pre {date} opäť platí bežný rozvrh.", "Dnia {date} znów obowiązuje zwykły grafik."],
+  "Restore the regular weekly schedule for {date}?": ["Vrátit {date} k běžnému týdennímu rozvrhu?", "Vrátiť {date} k bežnému týždennému rozvrhu?", "Przywrócić zwykły grafik na {date}?"],
+  "Forgot your password?": ["Zapomněli jste heslo?", "Zabudli ste heslo?", "Nie pamiętasz hasła?"],
+  "Password recovery": ["Obnovení hesla", "Obnovenie hesla", "Resetowanie hasła"],
+  "We'll email you a link to set a new password.": ["Pošleme vám odkaz pro nastavení nového hesla.", "Pošleme vám odkaz na nastavenie nového hesla.", "Wyślemy link do ustawienia nowego hasła."],
+  "Check your inbox": ["Zkontrolujte svou e-mailovou schránku", "Skontrolujte e-mailovú schránku", "Sprawdź skrzynkę e-mail"],
+  "If an account exists, we have emailed a password reset link.": ["Pokud pro zadaný e-mail existuje účet, poslali jsme odkaz pro změnu hesla.", "Ak účet existuje, poslali sme odkaz na zmenu hesla.", "Jeśli konto istnieje, wysłaliśmy link do zmiany hasła."],
+  "Send password reset link": ["Poslat odkaz na obnovu hesla", "Odoslať odkaz na obnovenie hesla", "Wyślij link do resetowania hasła"],
+  "Back to login": ["Zpět na přihlášení", "Späť na prihlásenie", "Powrót do logowania"],
+  "Try again": ["Zkusit znovu", "Skúsiť znova", "Spróbuj ponownie"],
+  "Set a new password": ["Nastavení nového hesla", "Nastavenie nového hesla", "Ustaw nowe hasło"],
+  "Choose a new password for your Bookanear account.": ["Zadejte nové heslo pro svůj účet Bookanear.", "Zadajte nové heslo pre účet Bookanear.", "Ustaw nowe hasło do konta Bookanear."],
+  "Passwords do not match.": ["Hesla se neshodují.", "Heslá sa nezhodujú.", "Hasła nie są identyczne."],
+  "Password changed": ["Heslo bylo změněno", "Heslo bolo zmenené", "Hasło zostało zmienione"],
+  "You can now log in with your new password.": ["Nyní se můžete přihlásit novým heslem.", "Teraz sa môžete prihlásiť novým heslom.", "Możesz teraz zalogować się nowym hasłem."],
+  "This password reset link is invalid. Request a new one.": ["Odkaz pro obnovu hesla je neplatný. Požádejte o nový.", "Odkaz na obnovenie hesla je neplatný. Požiadajte o nový.", "Link do resetowania hasła jest nieprawidłowy. Poproś o nowy."],
+  "Request a new link": ["Požádat o nový odkaz", "Požiadať o nový odkaz", "Poproś o nowy link"],
+  "Enter an email address like name@example.com.": ["Zadejte e-mail ve tvaru jmeno@domena.cz.", "Zadajte e-mail v tvare meno@domena.sk.", "Wpisz adres e-mail w formacie imie@domena.pl."],
+  "New password (min. 8 characters)": ["Nové heslo (min. 8 znaků)", "Nové heslo (min. 8 znakov)", "Nowe hasło (min. 8 znaków)"],
+  "Confirm new password": ["Zopakujte nové heslo", "Zopakujte nové heslo", "Powtórz nowe hasło"],
+  "Save new password": ["Uložit nové heslo", "Uložiť nové heslo", "Zapisz nowe hasło"],
+  "TEAM AND WORKING HOURS": ["LIDÉ A PRACOVNÍ DOBA", "ĽUDIA A PRACOVNÝ ČAS", "ZESPÓŁ I GODZINY PRACY"],
+  "Employees may work across locations without overlapping working hours.": ["Zaměstnanci mohou pracovat na více pobočkách. Jejich pracovní doba se nesmí překrývat.", "Zamestnanci môžu pracovať na viacerých pobočkách. Pracovný čas sa nesmie prekrývať.", "Pracownicy mogą pracować w kilku lokalizacjach. Ich godziny pracy nie mogą się pokrywać."],
+  "Working hours change": ["Změna pracovní doby", "Zmena pracovného času", "Zmiana godzin pracy"],
+  "Time off and working hours requests": ["Žádosti o volno a změny pracovní doby", "Žiadosti o voľno a zmeny pracovného času", "Wnioski o urlop i zmianę godzin pracy"],
+  "Employees can request time off or changes to working hours. Approval is needed unless self-approval is enabled.": ["Pracovník požádá o volno nebo úpravu pracovní doby. Změna se projeví až po schválení, pokud nemá povolené vlastní schvalování.", "Pracovník požiada o voľno alebo úpravu pracovného času. Zmena sa uplatní až po schválení.", "Pracownik prosi o urlop lub zmianę godzin pracy. Zmiana wymaga zatwierdzenia, chyba że sam może ją zatwierdzać."],
+  "Date format": ["Formát data", "Formát dátumu", "Format daty"],
+  "One-off working hours changes": ["Jednorázové změny pracovní doby", "Jednorazové zmeny pracovného času", "Jednorazowe zmiany godzin pracy"],
+  "Holiday, illness, shorter working hours or special hours.": ["Dovolená, nemoc, zkrácená pracovní doba nebo mimořádné pracovní hodiny.", "Dovolenka, choroba, skrátený pracovný čas alebo mimoriadne hodiny.", "Urlop, choroba, krótszy czas pracy lub niestandardowe godziny."],
+  "Working hours and services": ["Pracovní doba a služby", "Pracovný čas a služby", "Godziny pracy i usługi"],
+  "Help with business setup": ["Pomoc s nastavením provozu", "Pomoc s nastavením prevádzky", "Pomoc w konfiguracji działalności"],
+  "Time": ["Čas", "Čas", "Godzina"],
+  "Upload the first photo for this record.": ["Nahrajte první fotografii tohoto záznamu.", "Nahrajte prvú fotografiu tohto záznamu.", "Prześlij pierwsze zdjęcie tego wpisu."],
+  "Select the services available at this location. A service cannot be booked publicly unless assigned to a location.": ["Zaškrtněte služby dostupné na této pobočce. Bez přiřazení nelze službu veřejně rezervovat.", "Vyberte služby dostupné na tejto pobočke. Bez priradenia nemožno službu verejne rezervovať.", "Wybierz usługi dostępne w tej lokalizacji. Usługi nie można rezerwować publicznie, jeśli nie jest przypisana do lokalizacji."],
+  "Its bookable resources will be shown.": ["Zobrazí se její rezervovatelné zdroje.", "Zobrazia sa jej rezervovateľné zdroje.", "Zostaną wyświetlone dostępne zasoby do rezerwacji."],
+  "A service cannot be booked publicly without a valid version.": ["Bez platné verze nelze službu veřejně rezervovat.", "Bez platnej verzie nemožno službu verejne rezervovať.", "Usługi nie można rezerwować publicznie bez ważnej wersji."],
+  "Photos are stored in secure file storage.": ["Fotografie jsou uloženy v zabezpečeném souborovém úložišti.", "Fotografie sú uložené v zabezpečenom úložisku súborov.", "Zdjęcia są przechowywane w bezpiecznym magazynie plików."],
+  "Search staff...": ["Hledat zaměstnance...", "Hľadať zamestnancov...", "Szukaj pracowników..."],
+  "Invite the first team member by email.": ["Pozvěte prvního člena týmu e-mailem.", "Pozvite prvého člena tímu e-mailom.", "Zaproś pierwszego członka zespołu e-mailem."],
+  "Invitation acceptance": ["Přijetí pozvánky", "Prijatie pozvánky", "Przyjęcie zaproszenia"],
+  "Now sign in to your account and open the workspace.": ["Nyní se přihlaste ke svému účtu a otevřete pracovní prostor.", "Teraz sa prihláste do svojho účtu a otvorte pracovný priestor.", "Zaloguj się teraz na swoje konto i otwórz przestrzeń roboczą."],
+  "Checking invitation…": ["Ověřuji pozvánku…", "Overujem pozvánku…", "Sprawdzam zaproszenie…"],
+  "Anyone available": ["Kdokoliv dostupný", "Ktokoľvek dostupný", "Dowolna dostępna osoba"],
+  "John Smith": ["Jan Novák", "Ján Novák", "Jan Kowalski"],
+  "Manage group events": ["Spravovat skupinové události", "Spravovať skupinové udalosti", "Zarządzaj wydarzeniami grupowymi"],
+  "Manage bookings": ["Spravovat rezervace", "Spravovať rezervácie", "Zarządzaj rezerwacjami"],
+  "Customer booking overview": ["Přehled rezervací zákazníků", "Prehľad rezervácií zákazníkov", "Przegląd rezerwacji klientów"],
+  "Request time off": ["Požádat o volno", "Požiadať o voľno", "Poproś o wolne"],
+  "Submit time off or change working hours": ["Zadat volno nebo změnu pracovní doby", "Zadať voľno alebo zmenu pracovného času", "Zgłoś wolne lub zmianę godzin pracy"],
+  "Customers": ["Zákazníci", "Zákazníci", "Klienci"],
+  "Manage your organization details, customers, and public booking images.": ["Spravujte údaje organizace, nastavení pro zákazníky a obrázky veřejné rezervační stránky.", "Spravujte údaje organizácie, nastavenia pre zákazníkov a obrázky verejnej rezervačnej stránky.", "Zarządzaj danymi organizacji, ustawieniami klientów i obrazami publicznej strony rezerwacji."],
+  "Organization logo": ["Logo organizace", "Logo organizácie", "Logo organizacji"],
+  "Organization photos": ["Fotografie organizace", "Fotografie organizácie", "Zdjęcia organizacji"],
+  "Upload one logo to show on the public booking page.": ["Nahrajte jedno logo, které se zobrazí na veřejné rezervační stránce.", "Nahrajte jedno logo, ktoré sa zobrazí na verejnej rezervačnej stránke.", "Prześlij jedno logo, które będzie wyświetlane na publicznej stronie rezerwacji."],
+  "Photos are shown on the public booking page, with the primary photo first.": ["Fotografie se zobrazí na veřejné rezervační stránce; výchozí fotografie bude první.", "Fotografie sa zobrazia na verejnej rezervačnej stránke; predvolená fotografia bude prvá.", "Zdjęcia będą widoczne na publicznej stronie rezerwacji; domyślne zdjęcie pojawi się jako pierwsze."],
+  "Upload logo": ["Nahrát logo", "Nahrať logo", "Prześlij logo"],
+  "No logo yet": ["Zatím žádné logo", "Zatiaľ žiadne logo", "Brak logo"],
+  "No organization logo has been uploaded yet.": ["Zatím nebylo nahráno logo organizace.", "Zatiaľ nebolo nahrané logo organizácie.", "Nie przesłano jeszcze logo organizacji."],
+  "Remove organization logo?": ["Odebrat logo organizace?", "Odstrániť logo organizácie?", "Usunąć logo organizacji?"],
+  "Change email address": ["Změnit e-mailovou adresu", "Zmeniť e-mailovú adresu", "Zmień adres e-mail"],
+  "Password": ["Heslo", "Heslo", "Hasło"],
+  "Can approve own time off and working hours changes": ["Může si sám schvalovat volno a změny pracovní doby", "Môže si sám schvaľovať voľno a zmeny pracovného času", "Może sam zatwierdzać urlopy i zmiany godzin pracy"],
+  "Team and working hours": ["Tým a pracovní doba", "Tím a pracovný čas", "Zespół i godziny pracy"],
+  "Choose a location to change working hours on a specific date.": ["Zvolte pobočku, ve které chcete upravit pracovní dobu ve vybraném dni.", "Zvoľte pobočku, kde chcete upraviť pracovný čas v daný deň.", "Wybierz lokalizację, w której chcesz zmienić godziny pracy w danym dniu."],
+  "Working hours must not overlap between locations or with existing bookings.": ["Pracovní doba se nesmí překrývat s pracovní dobou na jiné pobočce ani s existujícími rezervacemi.", "Pracovný čas sa nesmie prekrývať medzi pobočkami ani s rezerváciami.", "Godziny pracy nie mogą się pokrywać między lokalizacjami ani z rezerwacjami."],
+};
 
-  "Pro každý den můžeš zadat více intervalů.": [
-    "Pre každý deň môžeš zadať viac intervalov.",
-    "Dla każdego dnia możesz dodać kilka przedziałów.",
-    "You can add multiple time intervals for each day."
-  ],
-  "Odebrat": [
-    "Odobrať",
-    "Usuń",
-    "Remove"
-  ],
-  "Volno / zavřeno": [
-    "Voľno / zatvorené",
-    "Wolne / zamknięte",
-    "Day off / closed"
-  ],
-  "Uložit rozvrh": [
-    "Uložiť rozvrh",
-    "Zapisz harmonogram",
-    "Save schedule"
-  ],
-  "Backend kontroluje překryvy směn zaměstnance mezi pobočkami. Kolize se zobrazí jako chyba 409.": [
-    "Server kontroluje prekrývanie zmien zamestnanca medzi pobočkami. Kolízia sa zobrazí ako chyba 409.",
-    "Serwer sprawdza nakładanie się zmian pracownika w różnych lokalizacjach. Konflikt zwróci błąd 409.",
-    "The server checks overlapping employee shifts across locations. A conflict returns HTTP 409."
-  ],
-  "PRACOVNÍ PROSTOR": [
-    "PRACOVNÝ PRIESTOR",
-    "PANEL PRACY",
-    "WORKSPACE"
-  ],
-  "Potřebujete poradit?": [
-    "Potrebujete poradiť?",
-    "Potrzebujesz pomocy?",
-    "Need help?"
-  ],
-  "API dokumentace": [
-    "Dokumentácia API",
-    "Dokumentacja API",
-    "API documentation"
-  ],
-  "Odhlásit se": [
-    "Odhlásiť sa",
-    "Wyloguj się",
-    "Sign out"
-  ],
-  "Otevřít nabídku": [
-    "Otvoriť ponuku",
-    "Otwórz menu",
-    "Open menu"
-  ],
-  "Pracovní prostor": [
-    "Pracovný priestor",
-    "Panel pracy",
-    "Workspace"
-  ],
-  "Vybrat organizaci": [
-    "Vybrať organizáciu",
-    "Wybierz organizację",
-    "Select organization"
-  ],
-  "Vyberte organizaci": [
-    "Vyberte organizáciu",
-    "Wybierz organizację",
-    "Choose an organization"
-  ],
-  "Pokud jste zaměstnanec, zadejte ID organizace. Seznam organizací je dostupný pouze majitelům a administrátorům.": [
-    "Ak ste zamestnanec, zadajte ID organizácie. Zoznam organizácií je dostupný len vlastníkom a správcom.",
-    "Jeśli jesteś pracownikiem, wpisz ID organizacji. Lista organizacji jest dostępna tylko dla właścicieli i administratorów.",
-    "If you're an employee, enter the organization ID. Only owners and administrators can view the organization list."
-  ],
-  "ID organizace": [
-    "ID organizácie",
-    "ID organizacji",
-    "Organization ID"
-  ],
-  "Otevřít": [
-    "Otvoriť",
-    "Otwórz",
-    "Open"
-  ],
-  "Seznam organizací není pro tento účet dostupný. Můžete zadat ID ručně.": [
-    "Zoznam organizácií nie je pre tento účet dostupný. ID môžete zadať ručne.",
-    "Lista organizacji jest niedostępna dla tego konta. Możesz wpisać ID ręcznie.",
-    "The organization list is unavailable for this account. You can enter an ID manually."
-  ],
-  "Změnit organizaci": [
-    "Zmeniť organizáciu",
-    "Zmień organizację",
-    "Change organization"
-  ],
-  "Obrázek byl nahrán.": [
-    "Obrázok bol nahraný.",
-    "Zdjęcie zostało przesłane.",
-    "Image uploaded."
-  ],
-  "Fotografie": [
-    "Fotografie",
-    "Zdjęcia",
-    "Photos"
-  ],
-  "JPEG nebo PNG do 10 MB. Obrázky se bezpečně ukládají přes backend.": [
-    "JPEG alebo PNG do 10 MB. Obrázky sa bezpečne ukladajú cez server.",
-    "JPEG lub PNG do 10 MB. Obrazy są bezpiecznie przesyłane przez serwer.",
-    "JPEG or PNG up to 10 MB. Images are securely uploaded through the backend."
-  ],
-  "Nahrát obrázek": [
-    "Nahrať obrázok",
-    "Prześlij zdjęcie",
-    "Upload image"
-  ],
-  "Zatím žádné fotografie": [
-    "Zatiaľ žiadne fotografie",
-    "Brak zdjęć",
-    "No photos yet"
-  ],
-  "Nahraj první fotografii tohoto záznamu.": [
-    "Nahraj prvú fotografiu tohto záznamu.",
-    "Prześlij pierwsze zdjęcie tego elementu.",
-    "Upload the first photo for this item."
-  ],
-  "Hlavní": [
-    "Hlavná",
-    "Główne",
-    "Primary"
-  ],
-  "Nastavit jako hlavní": [
-    "Nastaviť ako hlavnú",
-    "Ustaw jako główne",
-    "Set as primary"
-  ],
-  "Odebrat fotografii": [
-    "Odobrať fotografiu",
-    "Usuń zdjęcie",
-    "Remove photo"
-  ],
-  "Odebrat fotografii?": [
-    "Odobrať fotografiu?",
-    "Usunąć zdjęcie?",
-    "Remove photo?"
-  ],
-  "Při odebrání se odstraní vazba fotografie. Nepoužívaný soubor lze následně odstranit ve správě médií.": [
-    "Odstránením sa zruší priradenie fotografie. Nepoužívaný súbor môžete následne vymazať v správe médií.",
-    "Usunięcie odłącza zdjęcie. Nieużywany plik można następnie usunąć w zarządzaniu mediami.",
-    "Removing a photo unlinks it. You can delete the unused file later in media management."
-  ],
-  "Zavřít": [
-    "Zavrieť",
-    "Zamknij",
-    "Close"
-  ],
-  "Vymazat": [
-    "Vymazať",
-    "Wyczyść",
-    "Clear"
-  ],
-  "Předchozí": [
-    "Predchádzajúca",
-    "Poprzednia",
-    "Previous"
-  ],
-  "Strana": [
-    "Strana",
-    "Strona",
-    "Page"
-  ],
-  "z": [
-    "z",
-    "z",
-    "of"
-  ],
-  "Další": [
-    "Ďalšia",
-    "Następna",
-    "Next"
-  ],
-  "Zrušit": [
-    "Zrušiť",
-    "Anuluj",
-    "Cancel"
-  ],
-  "Zpět na úvod": [
-    "Späť na úvod",
-    "Powrót na stronę główną",
-    "Back to home"
-  ],
-  "ONLINE REZERVACE": [
-    "ONLINE REZERVÁCIE",
-    "REZERWACJE ONLINE",
-    "ONLINE BOOKING"
-  ],
-  "Vyberte si službu a čas, který vám vyhovuje. Hotovo během pár okamžiků.": [
-    "Vyberte si službu a čas, ktorý vám vyhovuje. Hotovo za pár okamihov.",
-    "Wybierz usługę i dogodny termin. To zajmie tylko chwilę.",
-    "Choose a service and a time that suits you. It only takes a moment."
-  ],
-  "Zkontrolujte veřejné UUID organizace a dostupnost backendu.": [
-    "Skontrolujte verejné UUID organizácie a dostupnosť servera.",
-    "Sprawdź publiczny identyfikator UUID organizacji i dostępność serwera.",
-    "Check the organization's public UUID and server availability."
-  ],
-  "Rezervace jsou dočasně pozastavené": [
-    "Rezervácie sú dočasne pozastavené",
-    "Rezerwacje są tymczasowo wstrzymane",
-    "Bookings are temporarily paused"
-  ],
-  "Kontaktujte provozovnu.": [
-    "Kontaktujte prevádzku.",
-    "Skontaktuj się z lokalem.",
-    "Contact the business."
-  ],
-  "KROK 01": [
-    "KROK 01",
-    "KROK 01",
-    "STEP 01"
-  ],
-  "KROK 02": [
-    "KROK 02",
-    "KROK 02",
-    "STEP 02"
-  ],
-  "KROK 03": [
-    "KROK 03",
-    "KROK 03",
-    "STEP 03"
-  ],
-  "KROK 04": [
-    "KROK 04",
-    "KROK 04",
-    "STEP 04"
-  ],
-  "Kde nás navštívíte?": [
-    "Kde nás navštívite?",
-    "Gdzie nas odwiedzisz?",
-    "Where will you visit us?"
-  ],
-  "Vyberte pobočku, která vám nejlépe vyhovuje.": [
-    "Vyberte pobočku, ktorá vám najviac vyhovuje.",
-    "Wybierz najdogodniejszą lokalizację.",
-    "Choose the location that suits you best."
-  ],
-  "Žádné dostupné pobočky": [
-    "Žiadne dostupné pobočky",
-    "Brak dostępnych lokalizacji",
-    "No available locations"
-  ],
-  "Jakou službu si přejete?": [
-    "Akú službu si želáte?",
-    "Jakiej usługi potrzebujesz?",
-    "Which service would you like?"
-  ],
-  "Vyberte službu z nabídky pobočky": [
-    "Vyberte službu z ponuky pobočky",
-    "Wybierz usługę z oferty lokalizacji",
-    "Choose a service at"
-  ],
-  "Datum plánované rezervace": [
-    "Dátum plánovanej rezervácie",
-    "Data planowanej rezerwacji",
-    "Planned booking date"
-  ],
-  "Pro tuto pobočku zatím nejsou služby": [
-    "Pre túto pobočku zatiaľ nie sú služby",
-    "Brak usług w tej lokalizacji",
-    "No services at this location yet"
-  ],
-  "Správce musí přiřadit služby k pobočce a nastavit jejich platnou cenovou verzi.": [
-    "Správca musí priradiť služby k pobočke a nastaviť platnú cenovú verziu.",
-    "Administrator musi przypisać usługi do lokalizacji i ustawić aktualny cennik.",
-    "An administrator must assign services to this location and configure valid pricing."
-  ],
-  "Vyberte datum a čas": [
-    "Vyberte dátum a čas",
-    "Wybierz datę i godzinę",
-    "Choose date and time"
-  ],
-  "Najděte si termín, který se vám hodí.": [
-    "Nájdite si termín, ktorý vám vyhovuje.",
-    "Znajdź dogodny termin.",
-    "Find a time that works for you."
-  ],
-  "Předchozí den": [
-    "Predchádzajúci deň",
-    "Poprzedni dzień",
-    "Previous day"
-  ],
-  "Další den": [
-    "Ďalší deň",
-    "Następny dzień",
-    "Next day"
-  ],
-  "Vybrat datum": [
-    "Vybrať dátum",
-    "Wybierz datę",
-    "Choose date"
-  ],
-  "Počet osob": [
-    "Počet osôb",
-    "Liczba osób",
-    "Party size"
-  ],
-  "Najdeme vhodný prostor pro vaši skupinu.": [
-    "Nájdeme vhodný priestor pre vašu skupinu.",
-    "Znajdziemy odpowiednie miejsce dla Twojej grupy.",
-    "We'll find a suitable space for your group."
-  ],
-  "Méně osob": [
-    "Menej osôb",
-    "Mniej osób",
-    "Fewer people"
-  ],
-  "Více osob": [
-    "Viac osôb",
-    "Więcej osób",
-    "More people"
-  ],
-  "Počet kusů": [
-    "Počet kusov",
-    "Liczba sztuk",
-    "Quantity"
-  ],
-  "Kolik kusů vybavení potřebujete?": [
-    "Koľko kusov vybavenia potrebujete?",
-    "Ile sztuk sprzętu potrzebujesz?",
-    "How many items do you need?"
-  ],
-  "Dostupné začátky": [
-    "Dostupné začiatky",
-    "Dostępne godziny rozpoczęcia",
-    "Available start times"
-  ],
-  "Hledám termíny…": [
-    "Hľadám termíny…",
-    "Szukam terminów…",
-    "Finding available times…"
-  ],
-  "Pro tento den nejsou volné termíny": [
-    "Na tento deň nie sú voľné termíny",
-    "Brak wolnych terminów w tym dniu",
-    "No availability on this day"
-  ],
-  "Zkuste jiné datum nebo pobočku.": [
-    "Skúste iný dátum alebo pobočku.",
-    "Spróbuj innej daty lub lokalizacji.",
-    "Try another date or location."
-  ],
-  "Pro službu s volitelnou délkou je potřeba v administraci nastavit požadavky na zdroje.": [
-    "Pre službu s voliteľnou dĺžkou treba v administrácii nastaviť požiadavky na zdroje.",
-    "Dla usługi o zmiennym czasie trwania należy skonfigurować wymagania dotyczące zasobów.",
-    "For variable-duration services, resource requirements must be configured in the admin area."
-  ],
-  "Vyberte pracovníka": [
-    "Vyberte pracovníka",
-    "Wybierz pracownika",
-    "Choose a staff member"
-  ],
-  "Datum a čas vrácení": [
-    "Dátum a čas vrátenia",
-    "Data i godzina zwrotu",
-    "Return date and time"
-  ],
-  "U půjčoven zvolte konec pronájmu. Finální dostupnost se ověří při odeslání.": [
-    "Pri požičovniach zvoľte koniec prenájmu. Dostupnosť sa overí pri odoslaní.",
-    "Wybierz koniec okresu wypożyczenia. Dostępność zostanie sprawdzona przy potwierdzeniu.",
-    "For rentals, select the end of the rental period. Availability is checked when you submit."
-  ],
-  "Datum vrácení": [
-    "Dátum vrátenia",
-    "Data zwrotu",
-    "Return date"
-  ],
-  "Čas vrácení": [
-    "Čas vrátenia",
-    "Godzina zwrotu",
-    "Return time"
-  ],
-  "Termín se při potvrzení znovu ověří. Může se mezitím obsadit.": [
-    "Termín sa pri potvrdení znova overí. Medzitým sa môže obsadiť.",
-    "Dostępność zostanie ponownie sprawdzona przy potwierdzeniu. Termin może zostać zajęty.",
-    "Availability will be checked again on confirmation. The slot may be taken in the meantime."
-  ],
-  "Ještě pár údajů": [
-    "Ešte pár údajov",
-    "Jeszcze kilka danych",
-    "Just a few details"
-  ],
-  "Kam vám můžeme poslat potvrzení rezervace?": [
-    "Kam vám môžeme poslať potvrdenie rezervácie?",
-    "Gdzie możemy wysłać potwierdzenie rezerwacji?",
-    "Where can we send your booking confirmation?"
-  ],
-  "Jméno a příjmení": [
-    "Meno a priezvisko",
-    "Imię i nazwisko",
-    "Full name"
-  ],
-  "E-mail": [
-    "E-mail",
-    "E-mail",
-    "Email"
-  ],
-  "Telefon (volitelné)": [
-    "Telefón (voliteľné)",
-    "Telefon (opcjonalnie)",
-    "Phone (optional)"
-  ],
-  "Vaše údaje budou použity pouze pro zpracování rezervace.": [
-    "Vaše údaje sa použijú iba na spracovanie rezervácie.",
-    "Twoje dane będą wykorzystane wyłącznie do obsługi rezerwacji.",
-    "Your details will only be used to process your booking."
-  ],
-  "Potvrdit rezervaci": [
-    "Potvrdiť rezerváciu",
-    "Potwierdź rezerwację",
-    "Confirm booking"
-  ],
-  "HOTOVO!": [
-    "HOTOVO!",
-    "GOTOWE!",
-    "DONE!"
-  ],
-  "Rezervace je potvrzena": [
-    "Rezervácia je potvrdená",
-    "Rezerwacja potwierdzona",
-    "Booking confirmed"
-  ],
-  "Vaše rezervace číslo": [
-    "Vaša rezervácia číslo",
-    "Twoja rezerwacja numer",
-    "Your booking number"
-  ],
-  "byla úspěšně vytvořena.": [
-    "bola úspešne vytvorená.",
-    "została pomyślnie utworzona.",
-    "has been created successfully."
-  ],
-  "Datum a čas": [
-    "Dátum a čas",
-    "Data i godzina",
-    "Date and time"
-  ],
-  "Pobočka": [
-    "Pobočka",
-    "Lokalizacja",
-    "Location"
-  ],
-  "Služba": [
-    "Služba",
-    "Usługa",
-    "Service"
-  ],
-  "Cena": [
-    "Cena",
-    "Cena",
-    "Price"
-  ],
-  "Spravovat rezervaci": [
-    "Spravovať rezerváciu",
-    "Zarządzaj rezerwacją",
-    "Manage booking"
-  ],
-  "Odkaz na správu si uložte. Obsahuje tajný přístupový token.": [
-    "Odkaz na správu si uložte. Obsahuje tajný prístupový token.",
-    "Zapisz link do zarządzania. Zawiera poufny token dostępu.",
-    "Save the management link. It contains a private access token."
-  ],
-  "Zpět": [
-    "Späť",
-    "Wstecz",
-    "Back"
-  ],
-  "Pokračovat": [
-    "Pokračovať",
-    "Dalej",
-    "Continue"
-  ],
-  "VAŠE REZERVACE": [
-    "VAŠA REZERVÁCIA",
-    "TWOJA REZERWACJA",
-    "YOUR BOOKING"
-  ],
-  "Souhrn objednávky": [
-    "Súhrn objednávky",
-    "Podsumowanie zamówienia",
-    "Booking summary"
-  ],
-  "Termín": [
-    "Termín",
-    "Termin",
-    "Appointment"
-  ],
-  "Celková cena": [
-    "Celková cena",
-    "Łączna cena",
-    "Total price"
-  ],
-  "Bezpečná rezervace bez registrace": [
-    "Bezpečná rezervácia bez registrácie",
-    "Bezpieczna rezerwacja bez rejestracji",
-    "Secure booking without registration"
-  ],
-  "Rezervační systém": [
-    "Rezervačný systém",
-    "System rezerwacji",
-    "Booking system"
-  ],
-  "Správa rezervace": [
-    "Správa rezervácie",
-    "Zarządzanie rezerwacją",
-    "Manage booking"
-  ],
-  "Zde můžete zobrazit stav své rezervace nebo ji zrušit.": [
-    "Tu si môžete pozrieť stav rezervácie alebo ju zrušiť.",
-    "Tutaj możesz sprawdzić status rezerwacji lub ją anulować.",
-    "View your booking status or cancel your reservation here."
-  ],
-  "Rezervace #": [
-    "Rezervácia #",
-    "Rezerwacja #",
-    "Booking #"
-  ],
-  "Jméno": [
-    "Meno",
-    "Imię",
-    "Name"
-  ],
-  "Rezervace byla zrušena.": [
-    "Rezervácia bola zrušená.",
-    "Rezerwacja została anulowana.",
-    "Booking cancelled."
-  ],
-  "Opravdu chcete rezervaci zrušit?": [
-    "Naozaj chcete zrušiť rezerváciu?",
-    "Czy na pewno chcesz anulować rezerwację?",
-    "Are you sure you want to cancel this booking?"
-  ],
-  "Zrušit rezervaci": [
-    "Zrušiť rezerváciu",
-    "Anuluj rezerwację",
-    "Cancel booking"
-  ],
-  "Odkaz na tuto stránku uchovávejte v soukromí.": [
-    "Odkaz na túto stránku uchovávajte v súkromí.",
-    "Zachowaj link do tej strony w tajemnicy.",
-    "Keep the link to this page private."
-  ],
-  "KAPACITY A VYBAVENÍ": [
-    "KAPACITY A VYBAVENIE",
-    "ZASOBY I WYPOSAŻENIE",
-    "CAPACITY & EQUIPMENT"
-  ],
-  "Zdroje": [
-    "Zdroje",
-    "Zasoby",
-    "Resources"
-  ],
-  "Spravujte bookanearvatelné pracovníky, místnosti, stoly a vybavení.": [
-    "Spravujte bookanearvateľných pracovníkov, miestnosti, stoly a vybavenie.",
-    "Zarządzaj pracownikami, pomieszczeniami, stolikami i wyposażeniem.",
-    "Manage bookable staff, rooms, tables, and equipment."
-  ],
-  "Typy zdrojů": [
-    "Typy zdrojov",
-    "Typy zasobów",
-    "Resource types"
-  ],
-  "Vyberte pobočku": [
-    "Vyberte pobočku",
-    "Wybierz lokalizację",
-    "Choose location"
-  ],
-  "zdrojů": [
-    "zdrojov",
-    "zasobów",
-    "resources"
-  ],
-  "Zobrazí se její bookanearvatelné zdroje.": [
-    "Zobrazia sa jej bookanearvateľné zdroje.",
-    "Wyświetlą się dostępne zasoby tej lokalizacji.",
-    "Its bookable resources will appear here."
-  ],
-  "Zatím žádné zdroje": [
-    "Zatiaľ žiadne zdroje",
-    "Brak zasobów",
-    "No resources yet"
-  ],
-  "Přidejte první stůl, pracovníka nebo vybavení.": [
-    "Pridajte prvý stôl, pracovníka alebo vybavenie.",
-    "Dodaj pierwszy stolik, pracownika lub sprzęt.",
-    "Add your first table, staff member, or equipment."
-  ],
-  "Zdroj": [
-    "Zdroj",
-    "Zasób",
-    "Resource"
-  ],
-  "Typ": [
-    "Typ",
-    "Typ",
-    "Type"
-  ],
-  "Kapacita": [
-    "Kapacita",
-    "Pojemność",
-    "Capacity"
-  ],
-  "Stav": [
-    "Stav",
-    "Status",
-    "Status"
-  ],
-  "Upravit": [
-    "Upraviť",
-    "Edytuj",
-    "Edit"
-  ],
-  "Zatím žádné typy zdrojů": [
-    "Zatiaľ žiadne typy zdrojov",
-    "Brak typów zasobów",
-    "No resource types yet"
-  ],
-  "Kategorie": [
-    "Kategória",
-    "Kategoria",
-    "Category"
-  ],
-  "Název": [
-    "Názov",
-    "Nazwa",
-    "Name"
-  ],
-  "Typ zdroje": [
-    "Typ zdroja",
-    "Typ zasobu",
-    "Resource type"
-  ],
-  "Vyberte typ": [
-    "Vyberte typ",
-    "Wybierz typ",
-    "Select type"
-  ],
-  "ID zaměstnance": [
-    "ID zamestnanca",
-    "ID pracownika",
-    "Employee ID"
-  ],
-  "Pracovník musí být přiřazen této pobočce.": [
-    "Pracovník musí byť priradený k tejto pobočke.",
-    "Pracownik musi być przypisany do tej lokalizacji.",
-    "The staff member must be assigned to this location."
-  ],
-  "Inventární kód (volitelné)": [
-    "Inventárny kód (voliteľné)",
-    "Kod inwentarzowy (opcjonalnie)",
-    "Inventory code (optional)"
-  ],
-  "Dostupný": [
-    "Dostupný",
-    "Dostępny",
-    "Available"
-  ],
-  "Údržba": [
-    "Údržba",
-    "Konserwacja",
-    "Maintenance"
-  ],
-  "Vyřazený": [
-    "Vyradený",
-    "Wycofany",
-    "Retired"
-  ],
-  "Aktivita": [
-    "Aktivita",
-    "Aktywność",
-    "Activity"
-  ],
-  "Aktivní": [
-    "Aktívny",
-    "Aktywny",
-    "Active"
-  ],
-  "Neaktivní": [
-    "Neaktívny",
-    "Nieaktywny",
-    "Inactive"
-  ],
-  "Název typu": [
-    "Názov typu",
-    "Nazwa typu",
-    "Type name"
-  ],
-  "ZÁKAZNICKÁ DATABÁZE": [
-    "DATABÁZA ZÁKAZNÍKOV",
-    "BAZA KLIENTÓW",
-    "CUSTOMER DATABASE"
-  ],
-  "Zákazníci": [
-    "Zákazníci",
-    "Klienci",
-    "Customers"
-  ],
-  "Kontakty a poznámky pro lepší péči o zákazníky.": [
-    "Kontakty a poznámky pre lepšiu starostlivosť o zákazníkov.",
-    "Kontakty i notatki pomagające w obsłudze klientów.",
-    "Contacts and notes to help you care for customers."
-  ],
-  "Nový zákazník": [
-    "Nový zákazník",
-    "Nowy klient",
-    "New customer"
-  ],
-  "Hledat jméno, e-mail…": [
-    "Hľadať meno, e-mail…",
-    "Szukaj imienia, e-maila…",
-    "Search name, email…"
-  ],
-  "zákazníků": [
-    "zákazníkov",
-    "klientów",
-    "customers"
-  ],
-  "Zatím žádní zákazníci": [
-    "Zatiaľ žiadni zákazníci",
-    "Brak klientów",
-    "No customers yet"
-  ],
-  "Přidejte zákazníka nebo vytvořte první rezervaci.": [
-    "Pridajte zákazníka alebo vytvorte prvú rezerváciu.",
-    "Dodaj klienta lub utwórz pierwszą rezerwację.",
-    "Add a customer or create your first booking."
-  ],
-  "Zákazník": [
-    "Zákazník",
-    "Klient",
-    "Customer"
-  ],
-  "Telefon": [
-    "Telefón",
-    "Telefon",
-    "Phone"
-  ],
-  "Interní poznámka": [
-    "Interná poznámka",
-    "Notatka wewnętrzna",
-    "Internal note"
-  ],
-  "LIDÉ A SMĚNY": [
-    "ĽUDIA A ZMENY",
-    "ZESPÓŁ I ZMIANY",
-    "STAFF & SHIFTS"
-  ],
-  "Váš tým": [
-    "Váš tím",
-    "Twój zespół",
-    "Your team"
-  ],
-  "Zaměstnanci mohou pracovat na více pobočkách. Směny se nesmí překrývat.": [
-    "Zamestnanci môžu pracovať na viacerých pobočkách. Zmeny sa nesmú prekrývať.",
-    "Pracownicy mogą pracować w wielu lokalizacjach. Zmiany nie mogą się nakładać.",
-    "Employees can work at multiple locations. Shifts must not overlap."
-  ],
-  "Přidat zaměstnance": [
-    "Pridať zamestnanca",
-    "Dodaj pracownika",
-    "Add employee"
-  ],
-  "Hledat zaměstnance…": [
-    "Hľadať zamestnancov…",
-    "Szukaj pracownika…",
-    "Search employees…"
-  ],
-  "členů týmu": [
-    "členov tímu",
-    "członków zespołu",
-    "team members"
-  ],
-  "Žádní zaměstnanci": [
-    "Žiadni zamestnanci",
-    "Brak pracowników",
-    "No employees yet"
-  ],
-  "Přidejte první člena týmu.": [
-    "Pridajte prvého člena tímu.",
-    "Dodaj pierwszego członka zespołu.",
-    "Add your first team member."
-  ],
-  "Zaměstnanec": [
-    "Zamestnanec",
-    "Pracownik",
-    "Employee"
-  ],
-  "Role": [
-    "Rola",
-    "Rola",
-    "Role"
-  ],
-  "Rozvrh a služby": [
-    "Rozvrh a služby",
-    "Grafik i usługi",
-    "Schedule and services"
-  ],
-  "Jméno zaměstnance": [
-    "Meno zamestnanca",
-    "Imię i nazwisko pracownika",
-    "Employee name"
-  ],
-  "Administrátor": [
-    "Administrátor",
-    "Administrator",
-    "Administrator"
-  ],
-  "Majitel": [
-    "Majiteľ",
-    "Właściciel",
-    "Owner"
-  ],
-  "Vytvoření zaměstnance v aktuálním API nezakládá přihlašovací účet. Záznam slouží pro rozvrhy a rezervace.": [
-    "Vytvorenie zamestnanca v aktuálnom API nezakladá prihlasovací účet. Záznam slúži na rozvrhy a rezervácie.",
-    "Utworzenie pracownika w obecnym API nie tworzy konta logowania. Rekord służy do grafików i rezerwacji.",
-    "Creating an employee in the current API does not create a login account. The record is used for schedules and bookings."
-  ],
-  "Pobočky": [
-    "Pobočky",
-    "Lokalizacje",
-    "Locations"
-  ],
-  "Služby": [
-    "Služby",
-    "Usługi",
-    "Services"
-  ],
-  "Směny": [
-    "Zmeny",
-    "Zmiany",
-    "Shifts"
-  ],
-  "Pobočka pro rozvrh": [
-    "Pobočka pre rozvrh",
-    "Lokalizacja dla grafiku",
-    "Schedule location"
-  ],
-  "Vyberte pobočku. Nejdříve ji přiřaďte zaměstnanci v záložce Pobočky.": [
-    "Vyberte pobočku. Najprv ju priraďte zamestnancovi na karte Pobočky.",
-    "Wybierz lokalizację. Najpierw przypisz ją pracownikowi w zakładce Lokalizacje.",
-    "Choose a location. First assign it to the employee on the Locations tab."
-  ],
-  "Zaměstnanec může být přiřazen více pobočkám. Historické rezervace mohou zabránit odebrání pobočky.": [
-    "Zamestnanec môže byť priradený k viacerým pobočkám. Historické rezervácie môžu zabrániť odobratiu pobočky.",
-    "Pracownik może być przypisany do wielu lokalizacji. Historyczne rezerwacje mogą uniemożliwić usunięcie przypisania.",
-    "An employee can be assigned to multiple locations. Past bookings may prevent removing an assignment."
-  ],
-  "Uložit pobočky": [
-    "Uložiť pobočky",
-    "Zapisz lokalizacje",
-    "Save locations"
-  ],
-  "Přiřazení služby bylo změněno.": [
-    "Priradenie služby bolo zmenené.",
-    "Przypisanie usługi zostało zmienione.",
-    "Service assignment updated."
-  ],
-  "Zvolte služby, které tento pracovník poskytuje.": [
-    "Zvoľte služby, ktoré tento pracovník poskytuje.",
-    "Wybierz usługi świadczone przez tego pracownika.",
-    "Choose the services this employee provides."
-  ],
-  "REZERVAČNÍ CENTRUM": [
-    "REZERVAČNÉ CENTRUM",
-    "CENTRUM REZERWACJI",
-    "BOOKING CENTER"
-  ],
-  "Rezervace": [
-    "Rezervácie",
-    "Rezerwacje",
-    "Bookings"
-  ],
-  "Přehled termínů, zákazníků a stavu všech rezervací.": [
-    "Prehľad termínov, zákazníkov a stavu všetkých rezervácií.",
-    "Przegląd terminów, klientów i statusów rezerwacji.",
-    "Overview of appointments, customers, and booking statuses."
-  ],
-  "Kalendář": [
-    "Kalendár",
-    "Kalendarz",
-    "Calendar"
-  ],
-  "Seznam": [
-    "Zoznam",
-    "Lista",
-    "List"
-  ],
-  "Jméno nebo e-mail…": [
-    "Meno alebo e-mail…",
-    "Imię lub e-mail…",
-    "Name or email…"
-  ],
-  "Filtrovat pobočku": [
-    "Filtrovať pobočku",
-    "Filtruj lokalizację",
-    "Filter location"
-  ],
-  "Všechny pobočky": [
-    "Všetky pobočky",
-    "Wszystkie lokalizacje",
-    "All locations"
-  ],
-  "Stav rezervace": [
-    "Stav rezervácie",
-    "Status rezerwacji",
-    "Booking status"
-  ],
-  "Všechny stavy": [
-    "Všetky stavy",
-    "Wszystkie statusy",
-    "All statuses"
-  ],
-  "Potvrzené": [
-    "Potvrdené",
-    "Potwierdzone",
-    "Confirmed"
-  ],
-  "Čekající": [
-    "Čakajúce",
-    "Oczekujące",
-    "Pending"
-  ],
-  "Dokončené": [
-    "Dokončené",
-    "Zakończone",
-    "Completed"
-  ],
-  "Zrušené": [
-    "Zrušené",
-    "Anulowane",
-    "Cancelled"
-  ],
-  "Nedostavil se": [
-    "Nedostavil sa",
-    "Nie pojawił się",
-    "No-show"
-  ],
-  "Dnes": [
-    "Dnes",
-    "Dziś",
-    "Today"
-  ],
-  "Žádné rezervace": [
-    "Žiadne rezervácie",
-    "Brak rezerwacji",
-    "No bookings"
-  ],
-  "Změňte filtry nebo počkejte na nové rezervace.": [
-    "Zmeňte filtre alebo počkajte na nové rezervácie.",
-    "Zmień filtry lub poczekaj na nowe rezerwacje.",
-    "Change the filters or wait for new bookings."
-  ],
-  "Vytvořeno": [
-    "Vytvorené",
-    "Utworzono",
-    "Created"
-  ],
-  "Částka": [
-    "Suma",
-    "Kwota",
-    "Amount"
-  ],
-  "Detail": [
-    "Detail",
-    "Szczegóły",
-    "Details"
-  ],
-  "Jméno zákazníka": [
-    "Meno zákazníka",
-    "Imię i nazwisko klienta",
-    "Customer name"
-  ],
-  "Položky rezervace": [
-    "Položky rezervácie",
-    "Pozycje rezerwacji",
-    "Booking items"
-  ],
-  "Služba #": [
-    "Služba #",
-    "Usługa #",
-    "Service #"
-  ],
-  "Aktuální API neposkytuje backoffice endpoint pro změnu stavu rezervace. Zde je detail pouze pro čtení.": [
-    "Aktuálne API neposkytuje endpoint na zmenu stavu rezervácie. Detail je len na čítanie.",
-    "Obecne API nie udostępnia funkcji zmiany statusu rezerwacji. Szczegóły są tylko do odczytu.",
-    "The current API does not support changing booking status in the backoffice. This view is read-only."
-  ],
-  "VÁŠ PRACOVNÍ PROSTOR": [
-    "VÁŠ PRACOVNÝ PRIESTOR",
-    "TWÓJ PANEL PRACY",
-    "YOUR WORKSPACE"
-  ],
-  "Celkem rezervací": [
-    "Celkom rezervácií",
-    "Łącznie rezerwacji",
-    "Total bookings"
-  ],
-  "Potvrzené (na stránce)": [
-    "Potvrdené (na stránke)",
-    "Potwierdzone (na stronie)",
-    "Confirmed (on page)"
-  ],
-  "Členové týmu": [
-    "Členovia tímu",
-    "Członkowie zespołu",
-    "Team members"
-  ],
-  "AKTIVITA": [
-    "AKTIVITA",
-    "AKTYWNOŚĆ",
-    "ACTIVITY"
-  ],
-  "Poslední rezervace": [
-    "Posledné rezervácie",
-    "Ostatnie rezerwacje",
-    "Recent bookings"
-  ],
-  "Zobrazit vše": [
-    "Zobraziť všetko",
-    "Zobacz wszystkie",
-    "View all"
-  ],
-  "Zatím žádné rezervace": [
-    "Zatiaľ žiadne rezervácie",
-    "Brak rezerwacji",
-    "No bookings yet"
-  ],
-  "Nové rezervace se zobrazí tady.": [
-    "Nové rezervácie sa zobrazia tu.",
-    "Nowe rezerwacje pojawią się tutaj.",
-    "New bookings will appear here."
-  ],
-  "RYCHLÝ START": [
-    "RÝCHLY ŠTART",
-    "SZYBKI START",
-    "QUICK START"
-  ],
-  "Začněte tady": [
-    "Začnite tu",
-    "Zacznij tutaj",
-    "Start here"
-  ],
-  "Přidat pobočku": [
-    "Pridať pobočku",
-    "Dodaj lokalizację",
-    "Add location"
-  ],
-  "Adresy a otevírací doba": [
-    "Adresy a otváracie hodiny",
-    "Adresy i godziny otwarcia",
-    "Addresses and opening hours"
-  ],
-  "Nastavit služby": [
-    "Nastaviť služby",
-    "Skonfiguruj usługi",
-    "Set up services"
-  ],
-  "Ceny a délka rezervací": [
-    "Ceny a dĺžka rezervácií",
-    "Ceny i czas trwania rezerwacji",
-    "Prices and booking duration"
-  ],
-  "Naplánovat směny": [
-    "Naplánovať zmeny",
-    "Zaplanuj zmiany",
-    "Plan shifts"
-  ],
-  "Pracovní doba zaměstnanců": [
-    "Pracovný čas zamestnancov",
-    "Godziny pracy pracowników",
-    "Employee working hours"
-  ],
-  "Veřejná rezervační stránka": [
-    "Verejná rezervačná stránka",
-    "Publiczna strona rezerwacji",
-    "Public booking page"
-  ],
-  "Sdílejte odkaz, aby se zákazníci mohli sami objednat.": [
-    "Zdieľajte odkaz, aby sa zákazníci mohli sami objednať.",
-    "Udostępnij link, aby klienci mogli samodzielnie rezerwować.",
-    "Share the link so customers can book themselves."
-  ],
-  "Otevřít rezervační web": [
-    "Otvoriť rezervačný web",
-    "Otwórz stronę rezerwacji",
-    "Open booking website"
-  ],
-  "Veřejné UUID najdete v nastavení organizace.": [
-    "Verejné UUID nájdete v nastaveniach organizácie.",
-    "Publiczny UUID znajdziesz w ustawieniach organizacji.",
-    "Find the public UUID in organization settings."
-  ],
-  "Seznam služeb není pro tento účet dostupný.": [
-    "Zoznam služieb nie je pre tento účet dostupný.",
-    "Lista usług jest niedostępna dla tego konta.",
-    "The service list is unavailable for this account."
-  ],
-  "Nastavení organizace bylo uloženo.": [
-    "Nastavenia organizácie boli uložené.",
-    "Ustawienia organizacji zostały zapisane.",
-    "Organization settings saved."
-  ],
-  "ORGANIZACE": [
-    "ORGANIZÁCIA",
-    "ORGANIZACJA",
-    "ORGANIZATION"
-  ],
-  "Nastavení": [
-    "Nastavenia",
-    "Ustawienia",
-    "Settings"
-  ],
-  "Profil organizace, veřejná rezervační stránka a fotografie.": [
-    "Profil organizácie, verejná rezervačná stránka a fotografie.",
-    "Profil organizacji, publiczna strona rezerwacji i zdjęcia.",
-    "Organization profile, public booking page, and photos."
-  ],
-  "Profil": [
-    "Profil",
-    "Profil",
-    "Profile"
-  ],
-  "Fotografie a logo": [
-    "Fotografie a logo",
-    "Zdjęcia i logo",
-    "Photos and logo"
-  ],
-  "Údaje organizace": [
-    "Údaje organizácie",
-    "Dane organizacji",
-    "Organization details"
-  ],
-  "Tyto informace slouží pro správu provozu.": [
-    "Tieto informácie slúžia na správu prevádzky.",
-    "Te informacje służą do zarządzania działalnością.",
-    "This information is used to manage your business."
-  ],
-  "Název organizace": [
-    "Názov organizácie",
-    "Nazwa organizacji",
-    "Organization name"
-  ],
-  "Kontaktní e-mail": [
-    "Kontaktný e-mail",
-    "Kontaktowy e-mail",
-    "Contact email"
-  ],
-  "Výchozí časové pásmo": [
-    "Predvolené časové pásmo",
-    "Domyślna strefa czasowa",
-    "Default time zone"
-  ],
-  "Veřejné rezervace": [
-    "Verejné rezervácie",
-    "Rezerwacje publiczne",
-    "Public bookings"
-  ],
-  "Povoleny": [
-    "Povolené",
-    "Włączone",
-    "Enabled"
-  ],
-  "Pozastaveny": [
-    "Pozastavené",
-    "Wstrzymane",
-    "Paused"
-  ],
-  "Uložit nastavení": [
-    "Uložiť nastavenia",
-    "Zapisz ustawienia",
-    "Save settings"
-  ],
-  "PRO ZÁKAZNÍKY": [
-    "PRE ZÁKAZNÍKOV",
-    "DLA KLIENTÓW",
-    "FOR CUSTOMERS"
-  ],
-  "Rezervační odkaz": [
-    "Rezervačný odkaz",
-    "Link do rezerwacji",
-    "Booking link"
-  ],
-  "Sdílejte veřejný odkaz na vaši organizaci.": [
-    "Zdieľajte verejný odkaz na vašu organizáciu.",
-    "Udostępnij publiczny link do swojej organizacji.",
-    "Share your organization's public link."
-  ],
-  "Kopírovat": [
-    "Kopírovať",
-    "Kopiuj",
-    "Copy"
-  ],
-  "Veřejné UUID zatím není k dispozici.": [
-    "Verejné UUID zatiaľ nie je k dispozícii.",
-    "Publiczny UUID nie jest jeszcze dostępny.",
-    "Public UUID is not available yet."
-  ],
-  "Informace o projektu": [
-    "Informácie o projekte",
-    "Informacje o projekcie",
-    "Project information"
-  ],
-  "Stav registrace": [
-    "Stav registrácie",
-    "Status rejestracji",
-    "Registration status"
-  ],
-  "Fotografie jsou ukládány přes backend do S3 kompatibilního úložiště (Cloudflare R2).": [
-    "Fotografie sa ukladajú cez server do úložiska kompatibilného s S3 (Cloudflare R2).",
-    "Zdjęcia są zapisywane przez serwer w pamięci zgodnej z S3 (Cloudflare R2).",
-    "Photos are stored through the backend in S3-compatible storage (Cloudflare R2)."
-  ],
-  "Zadejte platné veřejné UUID organizace.": [
-    "Zadajte platné verejné UUID organizácie.",
-    "Wpisz poprawny publiczny UUID organizacji.",
-    "Enter a valid public organization UUID."
-  ],
-  "Jak to funguje": [
-    "Ako to funguje",
-    "Jak to działa",
-    "How it works"
-  ],
-  "Funkce": [
-    "Funkcie",
-    "Funkcje",
-    "Features"
-  ],
-  "Přihlášení": [
-    "Prihlásenie",
-    "Logowanie",
-    "Sign in"
-  ],
-  "Začít zdarma": [
-    "Začať zadarmo",
-    "Zacznij za darmo",
-    "Get started free"
-  ],
-  "Rezervace bez chaosu": [
-    "Rezervácie bez chaosu",
-    "Rezerwacje bez chaosu",
-    "Bookings without the chaos"
-  ],
-  "Váš provoz.": [
-    "Vaša prevádzka.",
-    "Twój biznes.",
-    "Your business."
-  ],
-  "Váš čas.": [
-    "Váš čas.",
-    "Twój czas.",
-    "Your time."
-  ],
-  "Vaše pravidla.": [
-    "Vaše pravidlá.",
-    "Twoje zasady.",
-    "Your rules."
-  ],
-  "Jednoduchý rezervační systém pro salony, studia, restaurace i půjčovny. Spravujte vše z jednoho místa a dopřejte zákazníkům pohodlné online rezervace.": [
-    "Jednoduchý rezervačný systém pre salóny, štúdiá, reštaurácie aj požičovne. Spravujte všetko z jedného miesta a doprajte zákazníkom pohodlné online rezervácie.",
-    "Prosty system rezerwacji dla salonów, studiów, restauracji i wypożyczalni. Zarządzaj wszystkim w jednym miejscu i zaoferuj klientom wygodne rezerwacje online.",
-    "A simple booking system for salons, studios, restaurants, and rentals. Manage everything in one place and offer customers easy online bookings."
-  ],
-  "Založit organizaci": [
-    "Založiť organizáciu",
-    "Utwórz organizację",
-    "Create organization"
-  ],
-  "Prohlédnout funkce": [
-    "Pozrieť funkcie",
-    "Zobacz funkcje",
-    "Explore features"
-  ],
-  "Více poboček": [
-    "Viac pobočiek",
-    "Wiele lokalizacji",
-    "Multiple locations"
-  ],
-  "Flexibilní služby": [
-    "Flexibilné služby",
-    "Elastyczne usługi",
-    "Flexible services"
-  ],
-  "Online rezervace": [
-    "Online rezervácie",
-    "Rezerwacje online",
-    "Online booking"
-  ],
-  "Bookanear / Přehled": [
-    "Bookanear / Prehľad",
-    "Bookanear / Przegląd",
-    "Bookanear / Overview"
-  ],
-  "PŘEHLED": [
-    "PREHĽAD",
-    "PRZEGLĄD",
-    "OVERVIEW"
-  ],
-  "Dobrý den, Jano 👋": [
-    "Dobrý deň, Jana 👋",
-    "Dzień dobry, Jano 👋",
-    "Hello, Jana 👋"
-  ],
-  "Dnešní rezervace": [
-    "Dnešné rezervácie",
-    "Dzisiejsze rezerwacje",
-    "Today's bookings"
-  ],
-  "Aktivní pobočky": [
-    "Aktívne pobočky",
-    "Aktywne lokalizacje",
-    "Active locations"
-  ],
-  "V provozu": [
-    "V prevádzke",
-    "Otwarte",
-    "Open"
-  ],
-  "Týdenní kalendář": [
-    "Týždenný kalendár",
-    "Kalendarz tygodniowy",
-    "Weekly calendar"
-  ],
-  "Říjen 2026": [
-    "Október 2026",
-    "Październik 2026",
-    "October 2026"
-  ],
-  "Nová rezervace": [
-    "Nová rezervácia",
-    "Nowa rezerwacja",
-    "New booking"
-  ],
-  "Stříhání · dnes 14:30": [
-    "Strihanie · dnes 14:30",
-    "Strzyżenie · dziś 14:30",
-    "Haircut · today 14:30"
-  ],
-  "VŠE NA JEDNOM MÍSTĚ": [
-    "VŠETKO NA JEDNOM MIESTE",
-    "WSZYSTKO W JEDNYM MIEJSCU",
-    "EVERYTHING IN ONE PLACE"
-  ],
-  "Prostor pro růst vašeho podnikání": [
-    "Priestor pre rast vášho podnikania",
-    "Miejsce na rozwój Twojego biznesu",
-    "Room for your business to grow"
-  ],
-  "Od první rezervace až po síť poboček. Bookanear roste společně s vámi.": [
-    "Od prvej rezervácie až po sieť pobočiek. Bookanear rastie spolu s vami.",
-    "Od pierwszej rezerwacji po sieć lokalizacji. Bookanear rośnie razem z Tobą.",
-    "From your first booking to a network of locations, Bookanear grows with you."
-  ],
-  "Rezervace bez starostí": [
-    "Rezervácie bez starostí",
-    "Rezerwacje bez zmartwień",
-    "Hassle-free bookings"
-  ],
-  "Online objednávání a přehledný kalendář rezervací pro každou pobočku.": [
-    "Online objednávanie a prehľadný kalendár rezervácií pre každú pobočku.",
-    "Rezerwacje online i przejrzysty kalendarz dla każdej lokalizacji.",
-    "Online appointments and a clear booking calendar for every location."
-  ],
-  "Jedna organizace, libovolný počet provozoven a vlastní otevírací doba.": [
-    "Jedna organizácia, ľubovoľný počet prevádzok a vlastné otváracie hodiny.",
-    "Jedna organizacja, dowolna liczba lokalizacji i indywidualne godziny otwarcia.",
-    "One organization, any number of locations, and custom opening hours."
-  ],
-  "Rozvrhy zaměstnanců, služby a ochrana proti kolizím směn.": [
-    "Rozvrhy zamestnancov, služby a ochrana proti kolíziám zmien.",
-    "Grafiki pracowników, usługi i ochrona przed nakładającymi się zmianami.",
-    "Staff schedules, services, and protection against overlapping shifts."
-  ],
-  "Univerzální zdroje": [
-    "Univerzálne zdroje",
-    "Uniwersalne zasoby",
-    "Flexible resources"
-  ],
-  "Rezervujte kadeřníky, stoly, místnosti, nářadí i vybavení.": [
-    "Rezervujte kaderníkov, stoly, miestnosti, náradie aj vybavenie.",
-    "Rezerwuj fryzjerów, stoliki, pomieszczenia, narzędzia i sprzęt.",
-    "Book hairdressers, tables, rooms, tools, and equipment."
-  ],
-  "Vždy aktuální": [
-    "Vždy aktuálne",
-    "Zawsze aktualne",
-    "Always up to date"
-  ],
-  "Termíny a kapacity se kontrolují při vytváření každé rezervace.": [
-    "Termíny a kapacity sa kontrolujú pri vytváraní každej rezervácie.",
-    "Terminy i dostępność są sprawdzane przy każdej rezerwacji.",
-    "Slots and capacity are checked when each booking is created."
-  ],
-  "Bezpečné prostředí": [
-    "Bezpečné prostredie",
-    "Bezpieczne środowisko",
-    "Secure environment"
-  ],
-  "JWT přihlášení, oprávnění a oddělení dat jednotlivých organizací.": [
-    "JWT prihlásenie, oprávnenia a oddelenie dát jednotlivých organizácií.",
-    "Logowanie JWT, uprawnienia i oddzielne dane organizacji.",
-    "JWT login, permissions, and organization data isolation."
-  ],
-  "REZERVACE PRO ZÁKAZNÍKY": [
-    "REZERVÁCIE PRE ZÁKAZNÍKOV",
-    "REZERWACJE DLA KLIENTÓW",
-    "CUSTOMER BOOKINGS"
-  ],
-  "Máte odkaz na svou provozovnu?": [
-    "Máte odkaz na svoju prevádzku?",
-    "Masz link do swojego lokalu?",
-    "Have a link to your business?"
-  ],
-  "Zadejte veřejné ID organizace a otevřete její rezervační stránku. Není potřeba zákaznický účet.": [
-    "Zadajte verejné ID organizácie a otvorte jej rezervačnú stránku. Zákaznícky účet nie je potrebný.",
-    "Wpisz publiczny identyfikator organizacji i otwórz stronę rezerwacji. Konto klienta nie jest wymagane.",
-    "Enter the public organization ID to open its booking page. No customer account required."
-  ],
-  "Veřejné UUID organizace": [
-    "Verejné UUID organizácie",
-    "Publiczny UUID organizacji",
-    "Public organization UUID"
-  ],
-  "Rezervace, které dávají smysl.": [
-    "Rezervácie, ktoré dávajú zmysel.",
-    "Rezerwacje, które mają sens.",
-    "Bookings that make sense."
-  ],
-  "Administrace →": [
-    "Administrácia →",
-    "Administracja →",
-    "Admin →"
-  ],
-  "SPRÁVA PROVOZU": [
-    "SPRÁVA PREVÁDZKY",
-    "ZARZĄDZANIE LOKALIZACJAMI",
-    "LOCATION MANAGEMENT"
-  ],
-  "Spravujte provozovny, jejich otevírací dobu, nabídku služeb a fotografie.": [
-    "Spravujte prevádzky, ich otváracie hodiny, ponuku služieb a fotografie.",
-    "Zarządzaj lokalizacjami, godzinami otwarcia, ofertą usług i zdjęciami.",
-    "Manage locations, opening hours, services, and photos."
-  ],
-  "Nová pobočka": [
-    "Nová pobočka",
-    "Nowa lokalizacja",
-    "New location"
-  ],
-  "Hledat pobočku…": [
-    "Hľadať pobočku…",
-    "Szukaj lokalizacji…",
-    "Search locations…"
-  ],
-  "poboček": [
-    "pobočiek",
-    "lokalizacji",
-    "locations"
-  ],
-  "Žádné pobočky": [
-    "Žiadne pobočky",
-    "Brak lokalizacji",
-    "No locations yet"
-  ],
-  "Přidejte první provozovnu.": [
-    "Pridajte prvú prevádzku.",
-    "Dodaj pierwszą lokalizację.",
-    "Add your first location."
-  ],
-  "Adresa": [
-    "Adresa",
-    "Adres",
-    "Address"
-  ],
-  "Časové pásmo": [
-    "Časové pásmo",
-    "Strefa czasowa",
-    "Time zone"
-  ],
-  "Spravovat": [
-    "Spravovať",
-    "Zarządzaj",
-    "Manage"
-  ],
-  "Název pobočky": [
-    "Názov pobočky",
-    "Nazwa lokalizacji",
-    "Location name"
-  ],
-  "Otevírací doba": [
-    "Otváracie hodiny",
-    "Godziny otwarcia",
-    "Opening hours"
-  ],
-  "Nabídka služeb": [
-    "Ponuka služieb",
-    "Oferta usług",
-    "Service offering"
-  ],
-  "Zaškrtněte služby dostupné na této pobočce. Bez přiřazení nelze službu veřejně bookanearvat.": [
-    "Zaškrtnite služby dostupné na tejto pobočke. Bez priradenia nie je možné službu verejne bookanearvať.",
-    "Zaznacz usługi dostępne w tej lokalizacji. Bez przypisania usługa nie może być rezerwowana publicznie.",
-    "Select the services available at this location. Services cannot be booked publicly without an assignment."
-  ],
-  "Zatím nejsou vytvořené služby": [
-    "Zatiaľ nie sú vytvorené služby",
-    "Nie utworzono jeszcze usług",
-    "No services created yet"
-  ],
-  "Uložit přiřazení": [
-    "Uložiť priradenie",
-    "Zapisz przypisanie",
-    "Save assignments"
-  ],
-  "KATALOG": [
-    "KATALÓG",
-    "KATALOG",
-    "CATALOG"
-  ],
-  "Nastavte nabídku, ceny, délku služeb a potřebné zdroje.": [
-    "Nastavte ponuku, ceny, dĺžku služieb a potrebné zdroje.",
-    "Skonfiguruj ofertę, ceny, czas trwania usług i wymagane zasoby.",
-    "Configure services, prices, duration, and required resources."
-  ],
-  "Nová služba": [
-    "Nová služba",
-    "Nowa usługa",
-    "New service"
-  ],
-  "Hledat službu…": [
-    "Hľadať službu…",
-    "Szukaj usługi…",
-    "Search services…"
-  ],
-  "služeb": [
-    "služieb",
-    "usług",
-    "services"
-  ],
-  "Žádné služby": [
-    "Žiadne služby",
-    "Brak usług",
-    "No services yet"
-  ],
-  "Vytvořte svou první službu.": [
-    "Vytvorte svoju prvú službu.",
-    "Utwórz pierwszą usługę.",
-    "Create your first service."
-  ],
-  "Popis": [
-    "Popis",
-    "Opis",
-    "Description"
-  ],
-  "Název služby": [
-    "Názov služby",
-    "Nazwa usługi",
-    "Service name"
-  ],
-  "Ceny a délky": [
-    "Ceny a dĺžky",
-    "Ceny i czasy trwania",
-    "Prices and durations"
-  ],
-  "Potřebné zdroje": [
-    "Potrebné zdroje",
-    "Wymagane zasoby",
-    "Required resources"
-  ],
-  "Verze služby": [
-    "Verzia služby",
-    "Wersja usługi",
-    "Service version"
-  ],
-  "Platnost, cena a délka služby. Verze se historicky uchovávají.": [
-    "Platnosť, cena a dĺžka služby. Verzie sa historicky uchovávajú.",
-    "Ważność, cena i czas trwania usługi. Wersje są przechowywane historycznie.",
-    "Validity, price, and duration. Service versions are retained for history."
-  ],
-  "Nová verze": [
-    "Nová verzia",
-    "Nowa wersja",
-    "New version"
-  ],
-  "Zatím není nastavena cena ani délka": [
-    "Zatiaľ nie je nastavená cena ani dĺžka",
-    "Nie ustawiono ceny ani czasu trwania",
-    "Price and duration not set yet"
-  ],
-  "Bez platné verze nelze službu veřejně bookanearvat.": [
-    "Bez platnej verzie nie je možné službu verejne bookanearvať.",
-    "Bez aktywnej wersji usługa nie może być rezerwowana publicznie.",
-    "A valid version is required for public booking."
-  ],
-  "· krok": [
-    "· krok",
-    "· krok",
-    "· step"
-  ],
-  "min": [
-    "min",
-    "min",
-    "min"
-  ],
-  "Od": [
-    "Od",
-    "Od",
-    "From"
-  ],
-  "Do": [
-    "Do",
-    "Do",
-    "To"
-  ],
-  "Nová cenová verze": [
-    "Nová cenová verzia",
-    "Nowa wersja cennika",
-    "New pricing version"
-  ],
-  "Platná od": [
-    "Platná od",
-    "Ważna od",
-    "Valid from"
-  ],
-  "Platná do (nepovinné)": [
-    "Platná do (nepovinné)",
-    "Ważna do (opcjonalnie)",
-    "Valid until (optional)"
-  ],
-  "Měna": [
-    "Mena",
-    "Waluta",
-    "Currency"
-  ],
-  "Režim délky": [
-    "Režim dĺžky",
-    "Tryb czasu trwania",
-    "Duration mode"
-  ],
-  "Pevná délka": [
-    "Pevná dĺžka",
-    "Stały czas trwania",
-    "Fixed duration"
-  ],
-  "Volitelná délka (půjčovna)": [
-    "Voliteľná dĺžka (požičovňa)",
-    "Zmienny czas trwania (wypożyczalnia)",
-    "Custom duration (rental)"
-  ],
-  "Minimální délka (min)": [
-    "Minimálna dĺžka (min)",
-    "Minimalny czas (min)",
-    "Minimum duration (min)"
-  ],
-  "Krok termínů (min)": [
-    "Krok termínov (min)",
-    "Odstęp terminów (min)",
-    "Slot interval (min)"
-  ],
-  "Maximální délka (min)": [
-    "Maximálna dĺžka (min)",
-    "Maksymalny czas (min)",
-    "Maximum duration (min)"
-  ],
-  "Příprava před (min)": [
-    "Príprava pred (min)",
-    "Przygotowanie przed (min)",
-    "Setup before (min)"
-  ],
-  "Úklid po (min)": [
-    "Upratovanie po (min)",
-    "Sprzątanie po (min)",
-    "Cleanup after (min)"
-  ],
-  "Platnosti verzí se nesmí překrývat. U otevřené předchozí verze nejprve upravte její období v backendu.": [
-    "Platnosti verzií sa nesmú prekrývať. Pri otvorenej predchádzajúcej verzii najprv upravte jej obdobie na serveri.",
-    "Okresy ważności wersji nie mogą się nakładać. Najpierw zamknij poprzednią wersję w backendzie.",
-    "Version validity periods must not overlap. Close the previous open-ended version in the backend first."
-  ],
-  "Požadavky na zdroje byly uloženy.": [
-    "Požiadavky na zdroje boli uložené.",
-    "Wymagania dotyczące zasobów zapisano.",
-    "Resource requirements saved."
-  ],
-  "Požadavky na zdroje": [
-    "Požiadavky na zdroje",
-    "Wymagania dotyczące zasobów",
-    "Resource requirements"
-  ],
-  "Např. 1 kadeřník, 1 křeslo nebo 2 kusy vybavení.": [
-    "Napr. 1 kaderník, 1 kreslo alebo 2 kusy vybavenia.",
-    "Np. 1 fryzjer, 1 fotel lub 2 sztuki sprzętu.",
-    "For example, 1 hairdresser, 1 chair, or 2 pieces of equipment."
-  ],
-  "Počet": [
-    "Počet",
-    "Liczba",
-    "Quantity"
-  ],
-  "Min. kapacita": [
-    "Min. kapacita",
-    "Min. pojemność",
-    "Min. capacity"
-  ],
-  "+ Přidat požadavek": [
-    "+ Pridať požiadavku",
-    "+ Dodaj wymaganie",
-    "+ Add requirement"
-  ],
-  "Pro univerzální rezervace musí být alespoň jeden požadavek. Bez požadavků se používá původní rezervace s konkrétním zaměstnancem.": [
-    "Pre univerzálne rezervácie musí byť aspoň jedna požiadavka. Bez požiadaviek sa používa pôvodná rezervácia s konkrétnym zamestnancom.",
-    "Rezerwacje uniwersalne wymagają co najmniej jednego zasobu. Bez wymagań używana jest starsza rezerwacja z wybranym pracownikiem.",
-    "Universal bookings require at least one resource requirement. Without one, the legacy booking flow with a specific employee is used."
-  ],
-  "Uložit požadavky": [
-    "Uložiť požiadavky",
-    "Zapisz wymagania",
-    "Save requirements"
-  ],
-  "Vítejte zpět": [
-    "Vitajte späť",
-    "Witaj ponownie",
-    "Welcome back"
-  ],
-  "Heslo": [
-    "Heslo",
-    "Hasło",
-    "Password"
-  ],
-  "Zadejte heslo": [
-    "Zadajte heslo",
-    "Wpisz hasło",
-    "Enter password"
-  ],
-  "Přihlásit se": [
-    "Prihlásiť sa",
-    "Zaloguj się",
-    "Sign in"
-  ],
-  "Nemáte účet?": [
-    "Nemáte účet?",
-    "Nie masz konta?",
-    "Don't have an account?"
-  ],
-  "Vytvořit organizaci": [
-    "Vytvoriť organizáciu",
-    "Utwórz organizację",
-    "Create organization"
-  ],
-  "Registrace proběhla. Zkontrolujte e-mail a potvrďte svůj účet.": [
-    "Registrácia prebehla. Skontrolujte e-mail a potvrďte svoj účet.",
-    "Rejestracja zakończona. Sprawdź e-mail i potwierdź konto.",
-    "Registration successful. Check your email to verify your account."
-  ],
-  "Začněte bookanearvat": [
-    "Začnite bookanearvať",
-    "Zacznij przyjmować rezerwacje",
-    "Start taking bookings"
-  ],
-  "Vaše jméno": [
-    "Vaše meno",
-    "Twoje imię i nazwisko",
-    "Your name"
-  ],
-  "Heslo (min. 12 znaků)": [
-    "Heslo (min. 12 znakov)",
-    "Hasło (min. 12 znaków)",
-    "Password (min. 12 characters)"
-  ],
-  "Vytvořit účet": [
-    "Vytvoriť účet",
-    "Utwórz konto",
-    "Create account"
-  ],
-  "Už máte účet?": [
-    "Už máte účet?",
-    "Masz już konto?",
-    "Already have an account?"
-  ],
-  "Ověření e-mailu": [
-    "Overenie e-mailu",
-    "Weryfikacja e-maila",
-    "Email verification"
-  ],
-  "Účet je ověřený": [
-    "Účet je overený",
-    "Konto zweryfikowane",
-    "Account verified"
-  ],
-  "Nyní se můžete přihlásit do administrace.": [
-    "Teraz sa môžete prihlásiť do administrácie.",
-    "Możesz teraz zalogować się do panelu administracyjnego.",
-    "You can now sign in to the admin area."
-  ],
-  "Přejít na přihlášení": [
-    "Prejsť na prihlásenie",
-    "Przejdź do logowania",
-    "Go to sign in"
-  ],
-  "Ověřovací token": [
-    "Overovací token",
-    "Token weryfikacyjny",
-    "Verification token"
-  ],
-  "Token z e-mailu": [
-    "Token z e-mailu",
-    "Token z e-maila",
-    "Token from email"
-  ],
-  "Ověřit e-mail": [
-    "Overiť e-mail",
-    "Zweryfikuj e-mail",
-    "Verify email"
-  ],
-  "JEDNO MÍSTO PRO VŠECHNY REZERVACE": [
-    "JEDNO MIESTO PRE VŠETKY REZERVÁCIE",
-    "JEDNO MIEJSCE NA WSZYSTKIE REZERWACJE",
-    "ONE PLACE FOR ALL BOOKINGS"
-  ],
-  "Více času na to,": [
-    "Viac času na to,",
-    "Więcej czasu na to,",
-    "More time for"
-  ],
-  "co vás baví.": [
-    "čo vás baví.",
-    "co lubisz.",
-    "what you love."
-  ],
-  "Rezervace, pobočky, tým a zákazníci přehledně na jednom místě.": [
-    "Rezervácie, pobočky, tím a zákazníci prehľadne na jednom mieste.",
-    "Rezerwacje, lokalizacje, zespół i klienci w jednym miejscu.",
-    "Bookings, locations, staff, and customers in one place."
-  ],
-  "Bezpečná správa dat": [
-    "Bezpečná správa dát",
-    "Bezpieczne zarządzanie danymi",
-    "Secure data management"
-  ],
-  "Vše pod kontrolou": [
-    "Všetko pod kontrolou",
-    "Wszystko pod kontrolą",
-    "Everything under control"
-  ],
-  "Přístup podle rolí": [
-    "Prístup podľa rolí",
-    "Dostęp według ról",
-    "Role-based access"
-  ],
-  "Úvodní stránka": [
-    "Úvodná stránka",
-    "Strona główna",
-    "Home page"
-  ],
-  "Přehled": [
-    "Prehľad",
-    "Przegląd",
-    "Overview"
-  ],
-  "Tým a směny": [
-    "Tím a zmeny",
-    "Zespół i zmiany",
-    "Team & shifts"
-  ],
-  "Načítám data…": [
-    "Načítavam údaje…",
-    "Ładowanie danych…",
-    "Loading data…"
-  ],
-  "Zatím tu nic není": [
-    "Zatiaľ tu nič nie je",
-    "Na razie nic tu nie ma",
-    "Nothing here yet"
-  ],
-  "Hledat…": [
-    "Hľadať…",
-    "Szukaj…",
-    "Search…"
-  ],
-  "Strana {page} z {total}": [
-    "Strana {page} z {total}",
-    "Strona {page} z {total}",
-    "Page {page} of {total}"
-  ],
-  "Uložit změny": [
-    "Uložiť zmeny",
-    "Zapisz zmiany",
-    "Save changes"
-  ],
-  "Přidat": [
-    "Pridať",
-    "Dodaj",
-    "Add"
-  ],
-  "Uložit": [
-    "Uložiť",
-    "Zapisz",
-    "Save"
-  ],
-  "Nastala neočekávaná chyba.": [
-    "Nastala neočakávaná chyba.",
-    "Wystąpił nieoczekiwany błąd.",
-    "An unexpected error occurred."
-  ],
-  "Jméno nebo e-mail": [
-    "Meno alebo e-mail",
-    "Imię lub e-mail",
-    "Name or email"
-  ],
-  "Zatím nevybráno": [
-    "Zatiaľ nevybrané",
-    "Jeszcze nie wybrano",
-    "Not selected yet"
-  ],
-  "Adresa není uvedena": [
-    "Adresa nie je uvedená",
-    "Nie podano adresu",
-    "Address not provided"
-  ],
-  "Profesionální služba pro vás.": [
-    "Profesionálna služba pre vás.",
-    "Profesjonalna usługa dla Ciebie.",
-    "Professional service for you."
-  ],
-  "Délka dle výběru": [
-    "Dĺžka podľa výberu",
-    "Dowolny czas trwania",
-    "Custom duration"
-  ],
-  "Rezervace termínu": [
-    "Rezervácia termínu",
-    "Rezerwacja terminu",
-    "Book an appointment"
-  ],
-  "Vyberte službu": [
-    "Vyberte službu",
-    "Wybierz usługę",
-    "Choose service"
-  ],
-  "Vyberte termín": [
-    "Vyberte termín",
-    "Wybierz termin",
-    "Choose a time"
-  ],
-  "Kontaktní údaje": [
-    "Kontaktné údaje",
-    "Dane kontaktowe",
-    "Contact details"
-  ],
-  "Potvrzení": [
-    "Potvrdenie",
-    "Potwierdzenie",
-    "Confirmation"
-  ],
-  "Přihlaste se do správy svého provozu.": [
-    "Prihláste sa do správy svojej prevádzky.",
-    "Zaloguj się, aby zarządzać swoją działalnością.",
-    "Sign in to manage your business."
-  ],
-  "Vytvořte organizaci a nastavte své pobočky.": [
-    "Vytvorte organizáciu a nastavte svoje pobočky.",
-    "Utwórz organizację i skonfiguruj lokalizacje.",
-    "Create an organization and set up your locations."
-  ],
-  "Potvrďte svou e-mailovou adresu.": [
-    "Potvrďte svoju e-mailovú adresu.",
-    "Potwierdź swój adres e-mail.",
-    "Confirm your email address."
-  ],
-  "errors.NETWORK_ERROR": [
-    "Nepodarilo sa spojiť so serverom. Skúste to znova.",
-    "Nie można połączyć się z serwerem. Spróbuj ponownie.",
-    "Cannot connect to the server. Please try again."
-  ],
-  "errors.AUTH_REQUIRED": [
-    "Platnosť prihlásenia vypršala. Prihláste sa znova.",
-    "Sesja wygasła. Zaloguj się ponownie.",
-    "Your session has expired. Please sign in again."
-  ],
-  "errors.ACCESS_DENIED": [
-    "Na túto akciu nemáte oprávnenie.",
-    "Nie masz uprawnień do wykonania tej czynności.",
-    "You don't have permission to perform this action."
-  ],
-  "errors.NOT_FOUND": [
-    "Požadovaný záznam sa nenašiel.",
-    "Nie znaleziono żądanego elementu.",
-    "The requested item was not found."
-  ],
-  "errors.VALIDATION_ERROR": [
-    "Skontrolujte zadané údaje a skúste to znova.",
-    "Sprawdź wprowadzone dane i spróbuj ponownie.",
-    "Please check your input and try again."
-  ],
-  "errors.CONFLICT": [
-    "Údaje sa medzitým zmenili alebo vznikla kolízia. Obnovte stránku a skúste to znova.",
-    "Dane uległy zmianie lub wystąpił konflikt. Odśwież stronę i spróbuj ponownie.",
-    "The data changed or a conflict occurred. Refresh and try again."
-  ],
-  "errors.RATE_LIMITED": [
-    "Príliš veľa požiadaviek. Skúste to o chvíľu.",
-    "Zbyt wiele żądań. Spróbuj ponownie za chwilę.",
-    "Too many requests. Please try again shortly."
-  ],
-  "errors.FILE_TOO_LARGE": [
-    "Súbor je príliš veľký.",
-    "Plik jest zbyt duży.",
-    "The file is too large."
-  ],
-  "errors.SERVICE_UNAVAILABLE": [
-    "Služba je dočasne nedostupná. Skúste to neskôr.",
-    "Usługa jest tymczasowo niedostępna. Spróbuj później.",
-    "The service is temporarily unavailable. Try again later."
-  ],
-  "errors.SERVER_ERROR": [
-    "Na serveri nastala chyba. Skúste to neskôr.",
-    "Wystąpił błąd serwera. Spróbuj później.",
-    "A server error occurred. Please try again later."
-  ],
-  "errors.UNKNOWN_ERROR": [
-    "Niečo sa nepodarilo. Skúste to znova.",
-    "Coś poszło nie tak. Spróbuj ponownie.",
-    "Something went wrong. Please try again."
-  ],
-  "errors.SLOT_UNAVAILABLE": [
-    "Vybraný termín už nie je voľný. Vyberte iný.",
-    "Wybrany termin nie jest już dostępny. Wybierz inny.",
-    "The selected time is no longer available. Choose another slot."
-  ],
-  "errors.INSUFFICIENT_RESOURCES": [
-    "Pre vybraný termín nie je dostatok voľných zdrojov.",
-    "Brak wystarczających zasobów w wybranym terminie.",
-    "Not enough resources are available for the selected time."
-  ],
-  "errors.SCHEDULE_CONFLICT": [
-    "Zmena sa prekrýva s inou zmenou alebo rezerváciou.",
-    "Zmiana nakłada się na inną zmianę lub rezerwację.",
-    "This shift overlaps another shift or booking."
-  ],
-  "errors.INVALID_BOOKING_DURATION": [
-    "Zvolená dĺžka rezervácie nie je platná.",
-    "Wybrany czas trwania rezerwacji jest nieprawidłowy.",
-    "The selected booking duration is invalid."
-  ],
-  "errors.INVALID_BOOKING_LINK": [
-    "Odkaz na rezerváciu je neplatný alebo jeho platnosť vypršala.",
-    "Link do rezerwacji jest nieprawidłowy lub wygasł.",
-    "This booking link is invalid or expired."
-  ],
-  "errors.UNSUPPORTED_IMAGE": [
-    "Použite platný obrázok JPEG alebo PNG.",
-    "Prześlij prawidłowy obraz JPEG lub PNG.",
-    "Please upload a valid JPEG or PNG image."
-  ],
-  "errors.INVALID_CREDENTIALS": [
-    "Nesprávny e-mail alebo heslo.",
-    "Nieprawidłowy adres e-mail lub hasło.",
-    "Incorrect email or password."
-  ],
-  "errors.EMAIL_NOT_VERIFIED": [
-    "Najprv potvrďte svoju e-mailovú adresu.",
-    "Najpierw potwierdź swój adres e-mail.",
-    "Please verify your email address first."
-  ],
+// Error identifiers are machine keys and retain their existing SK, PL, EN values.
+const errorTranslations: Record<string, [string, string, string]> = {
+  "errors.NETWORK_ERROR": ["Nepodarilo sa spojiť so serverom. Skúste to znova.", "Nie można połączyć się z serwerem. Spróbuj ponownie.", "Cannot connect to the server. Please try again."],
+  "errors.AUTH_REQUIRED": ["Platnosť prihlásenia vypršala. Prihláste sa znova.", "Sesja wygasła. Zaloguj się ponownie.", "Your session has expired. Please sign in again."],
+  "errors.ACCESS_DENIED": ["Na túto akciu nemáte oprávnenie.", "Nie masz uprawnień do wykonania tej czynności.", "You don't have permission to perform this action."],
+  "errors.NOT_FOUND": ["Požadovaný záznam sa nenašiel.", "Nie znaleziono żądanego elementu.", "The requested item was not found."],
+  "errors.VALIDATION_ERROR": ["Skontrolujte zadané údaje a skúste to znova.", "Sprawdź wprowadzone dane i spróbuj ponownie.", "Please check your input and try again."],
+  "errors.CONFLICT": ["Údaje sa medzitým zmenili alebo vznikla kolízia. Obnovte stránku a skúste to znova.", "Dane uległy zmianie lub wystąpił konflikt. Odśwież stronę i spróbuj ponownie.", "The data changed or a conflict occurred. Refresh and try again."],
+  "errors.LOCATION_HAS_ACTIVE_RESERVATIONS": ["Pobočku nemožno zrušiť, kým nezrušíte všetky jej budúce rezervácie a prihlásenia na udalosti.", "Nie można zarchiwizować lokalizacji, dopóki nie zostaną anulowane wszystkie przyszłe rezerwacje i zapisy na wydarzenia.", "Cancel all future reservations and event registrations before archiving this location."],
+  "errors.MEMBER_HAS_ACTIVE_RESERVATIONS": ["Pracovníka nemožno odobrať, kým nezrušíte alebo nepriradíte všetky jeho budúce rezervácie.", "Nie można usunąć pracownika, dopóki wszystkie jego przyszłe rezerwacje nie zostaną anulowane lub przypisane ponownie.", "Cancel or reassign all of this worker's future reservations before removing them."],
+  "errors.SERVICE_IN_USE": ["Službu nemožno odstrániť, pretože bola použitá v rezervácii alebo čakacej listine.", "Nie można usunąć usługi, ponieważ została użyta w rezerwacji lub na liście oczekujących.", "This service cannot be deleted because it has been used in a reservation or waitlist entry."],
+  "errors.RATE_LIMITED": ["Príliš veľa požiadaviek. Skúste to o chvíľu.", "Zbyt wiele żądań. Spróbuj ponownie za chwilę.", "Too many requests. Please try again shortly."],
+  "errors.FILE_TOO_LARGE": ["Súbor je príliš veľký.", "Plik jest zbyt duży.", "The file is too large."],
+  "errors.SERVICE_UNAVAILABLE": ["Služba je dočasne nedostupná. Skúste to neskôr.", "Usługa jest tymczasowo niedostępna. Spróbuj później.", "The service is temporarily unavailable. Try again later."],
+  "errors.SERVER_ERROR": ["Na serveri nastala chyba. Skúste to neskôr.", "Wystąpił błąd serwera. Spróbuj później.", "A server error occurred. Please try again later."],
+  "errors.UNKNOWN_ERROR": ["Niečo sa nepodarilo. Skúste to znova.", "Coś poszło nie tak. Spróbuj ponownie.", "Something went wrong. Please try again."],
+  "errors.SLOT_UNAVAILABLE": ["Vybraný termín už nie je voľný. Vyberte iný.", "Wybrany termin nie jest już dostępny. Wybierz inny.", "The selected time is no longer available. Choose another slot."],
+  "errors.INSUFFICIENT_RESOURCES": ["Pre vybraný termín nie je dostatok voľných zdrojov.", "Brak wystarczających zasobów w wybranym terminie.", "Not enough resources are available for the selected time."],
+  "errors.SCHEDULE_CONFLICT": ["Zmena sa prekrýva s inou zmenou alebo rezerváciou.", "Zmiana nakłada się na inną zmianę lub rezerwację.", "This shift overlaps another shift or booking."],
+  "errors.INVALID_BOOKING_DURATION": ["Zvolená dĺžka rezervácie nie je platná.", "Wybrany czas trwania rezerwacji jest nieprawidłowy.", "The selected booking duration is invalid."],
+  "errors.INVALID_BOOKING_LINK": ["Odkaz na rezerváciu je neplatný alebo jeho platnosť vypršala.", "Link do rezerwacji jest nieprawidłowy lub wygasł.", "This booking link is invalid or expired."],
+  "errors.UNSUPPORTED_IMAGE": ["Použite platný obrázok JPEG alebo PNG.", "Prześlij prawidłowy obraz JPEG lub PNG.", "Please upload a valid JPEG or PNG image."],
+  "errors.INVALID_CREDENTIALS": ["Nesprávny e-mail alebo heslo.", "Nieprawidłowy adres e-mail lub hasło.", "Incorrect email or password."],
+  "errors.EMAIL_NOT_VERIFIED": ["Najprv potvrďte svoju e-mailovú adresu.", "Najpierw potwierdź swój adres e-mail.", "Please verify your email address first."],
   "errors.EVENT_FULL": ["Udalosť je plná. Vyberte menej miest alebo iný termín.", "Wydarzenie jest pełne. Wybierz mniej miejsc lub inny termin.", "This event is full. Choose fewer seats or another session."],
   "errors.SETUP_LOCKED": ["Typ rezervácií je už uzamknutý. Kontaktujte správcu.", "Typ rezerwacji jest zablokowany. Skontaktuj się z administratorem.", "The booking model is locked. Contact support."],
-  "errors.RESOURCE_NOT_FOUND": [
-    "Vybraný zdroj sa nenašiel.",
-    "Nie znaleziono wybranego zasobu.",
-    "The selected resource was not found."
-  ],
-  "Jazyk": [
-    "Jazyk",
-    "Język",
-    "Language"
-  ],
-  "Barevné schéma": [
-    "Farebná schéma",
-    "Motyw kolorystyczny",
-    "Color theme"
-  ],
-  "Vzhled a jazyk": [
-    "Vzhľad a jazyk",
-    "Wygląd i język",
-    "Appearance & language"
-  ],
-  "Zvolte jazyk rozhraní a barevné schéma administrace. Volby se uloží do tohoto prohlížeče.": [
-    "Zvoľte jazyk rozhrania a farebnú schému administrácie. Voľby sa uložia do tohto prehliadača.",
-    "Wybierz język interfejsu i motyw kolorystyczny panelu. Ustawienia zostaną zapisane w tej przeglądarce.",
-    "Choose your interface language and admin color theme. Preferences are saved in this browser."
-  ],
-  "Pondělí": [
-    "Pondelok",
-    "Poniedziałek",
-    "Monday"
-  ],
-  "Úterý": [
-    "Utorok",
-    "Wtorek",
-    "Tuesday"
-  ],
-  "Středa": [
-    "Streda",
-    "Środa",
-    "Wednesday"
-  ],
-  "Čtvrtek": [
-    "Štvrtok",
-    "Czwartek",
-    "Thursday"
-  ],
-  "Pátek": [
-    "Piatok",
-    "Piątek",
-    "Friday"
-  ],
-  "Sobota": [
-    "Sobota",
-    "Sobota",
-    "Saturday"
-  ],
-  "Neděle": [
-    "Nedeľa",
-    "Niedziela",
-    "Sunday"
-  ],
-  "Potvrzeno": [
-    "Potvrdené",
-    "Potwierdzono",
-    "Confirmed"
-  ],
-  "Čeká": [
-    "Čaká",
-    "Oczekuje",
-    "Pending"
-  ],
-  "Dokončeno": [
-    "Dokončené",
-    "Zakończono",
-    "Completed"
-  ],
-  "Zrušeno": [
-    "Zrušené",
-    "Anulowano",
-    "Cancelled"
-  ],
-  "Dobrý den 👋": [
-    "Dobrý deň 👋",
-    "Dzień dobry 👋",
-    "Hello 👋"
-  ],
-  "Vyberte všechny údaje rezervace.": [
-    "Vyberte všetky údaje rezervácie.",
-    "Wybierz wszystkie dane rezerwacji.",
-    "Complete all booking details."
-  ],
-  "Vyberte pracovníka.": [
-    "Vyberte pracovníka.",
-    "Wybierz pracownika.",
-    "Choose a staff member."
-  ],
-  "Čas vrácení musí být po začátku rezervace.": [
-    "Čas vrátenia musí byť po začiatku rezervácie.",
-    "Godzina zwrotu musi być późniejsza niż początek rezerwacji.",
-    "The return time must be after the booking start."
-  ],
-  "Použij JPEG nebo PNG.": [
-    "Použite JPEG alebo PNG.",
-    "Użyj JPEG lub PNG.",
-    "Use JPEG or PNG."
-  ],
-  "Soubor je větší než 10 MB.": [
-    "Súbor je väčší než 10 MB.",
-    "Plik ma ponad 10 MB.",
-    "The file exceeds 10 MB."
-  ],
-  "Rozvrh byl uložen.": [
-    "Rozvrh bol uložený.",
-    "Grafik zapisany.",
-    "Schedule saved."
-  ],
-  "Pracovní doba": [
-    "Pracovný čas",
-    "Godziny pracy",
-    "Working hours"
-  ],
-  "Upravit zákazníka": [
-    "Upraviť zákazníka",
-    "Edytuj klienta",
-    "Edit customer"
-  ],
-  "Upravit pobočku": [
-    "Upraviť pobočku",
-    "Edytuj lokalizację",
-    "Edit location"
-  ],
-  "Nabídka služeb byla uložena.": [
-    "Ponuka služieb bola uložená.",
-    "Oferta usług została zapisana.",
-    "Service offering saved."
-  ],
-  "Upravit zaměstnance": [
-    "Upraviť zamestnanca",
-    "Edytuj pracownika",
-    "Edit employee"
-  ],
-  "Nový zaměstnanec": [
-    "Nový zamestnanec",
-    "Nowy pracownik",
-    "New employee"
-  ],
-  "Přiřazení poboček uloženo.": [
-    "Priradenie pobočiek bolo uložené.",
-    "Przypisania lokalizacji zapisane.",
-    "Location assignments saved."
-  ],
-  "Prostor / stůl": [
-    "Priestor / stôl",
-    "Pomieszczenie / stolik",
-    "Space / table"
-  ],
-  "Vybavení": [
-    "Vybavenie",
-    "Sprzęt",
-    "Equipment"
-  ],
-  "Ostatní": [
-    "Ostatné",
-    "Inne",
-    "Other"
-  ],
-  "Nový typ zdroje": [
-    "Nový typ zdroja",
-    "Nowy typ zasobu",
-    "New resource type"
-  ],
-  "Nový zdroj": [
-    "Nový zdroj",
-    "Nowy zasób",
-    "New resource"
-  ],
-  "Upravit zdroj": [
-    "Upraviť zdroj",
-    "Edytuj zasób",
-    "Edit resource"
-  ],
-  "Upravit typ zdroje": [
-    "Upraviť typ zdroja",
-    "Edytuj typ zasobu",
-    "Edit resource type"
-  ],
-  "Upravit službu": [
-    "Upraviť službu",
-    "Edytuj usługę",
-    "Edit service"
-  ],
-  "Volitelná délka": [
-    "Voliteľná dĺžka",
-    "Zmienny czas trwania",
-    "Custom duration"
-  ],
-  "Vítejte v administraci {organization}. Tady máte přehled toho nejdůležitějšího.": [
-    "Vitajte v administrácii {organization}. Tu máte prehľad toho najdôležitejšieho.",
-    "Witaj w panelu organizacji {organization}. Oto przegląd najważniejszych informacji.",
-    "Welcome to {organization}'s admin area. Here's an overview of what matters most."
-  ],
-  "vaší organizace": [
-    "vašej organizácie",
-    "Twojej organizacji",
-    "your organization"
-  ],
-  "Podle dostupných záznamů": [
-    "Podľa dostupných záznamov",
-    "Na podstawie dostępnych danych",
-    "Based on available records"
-  ],
-  "Z posledních načtených rezervací": [
-    "Z posledných načítaných rezervácií",
-    "Z ostatnio pobranych rezerwacji",
-    "From recently loaded bookings"
-  ],
-  "V organizaci": [
-    "V organizácii",
-    "W organizacji",
-    "In organization"
-  ],
-  "Administrace": [
-    "Administrácia",
-    "Administracja",
-    "Admin"
-  ],
-  "Neznámý stav": [
-    "Neznámy stav",
-    "Nieznany status",
-    "Unknown status"
-  ],
-  "Neznámá role": [
-    "Neznáma rola",
-    "Nieznana rola",
-    "Unknown role"
-  ],
-  "Ověřit adresu na mapě": ["Overiť adresu na mape", "Sprawdź adres na mapie", "Check address on the map"],
-  "Vyberte správné místo:": ["Vyberte správne miesto:", "Wybierz właściwe miejsce:", "Choose the correct location:"],
-  "Zadejte úplnější adresu včetně obce.": ["Zadajte úplnejšiu adresu vrátane obce.", "Wpisz dokładniejszy adres wraz z miejscowością.", "Enter a fuller address including the city."],
-  "Adresu se nepodařilo najít. Doplňte město a číslo domu nebo zkuste jiný zápis.": ["Adresu sa nepodarilo nájsť. Doplňte mesto a číslo domu.", "Nie znaleziono adresu. Dodaj miasto i numer budynku.", "Address not found. Add a city and building number."],
-  "Poloha vybrána": ["Poloha vybraná", "Wybrano lokalizację", "Location selected"],
-  "Otevřít mapu": ["Otvoriť mapu", "Otwórz mapę", "Open map"],
-  "Geokódování určuje polohu podle mapových dat, neověřuje oficiální doručitelnost adresy.": ["Geokódovanie určuje polohu podľa mapových údajov, neoveruje doručiteľnosť adresy.", "Geokodowanie określa lokalizację na podstawie mapy, nie potwierdza adresu pocztowego.", "Geocoding locates an address on a map; it does not verify postal deliverability."],
-  "Mapa": ["Mapa", "Mapa", "Map"],
-  "Zobrazit na mapě": ["Zobraziť na mape", "Pokaż na mapie", "Show on map"],
-  "Výjimky a svátky": ["Výnimky a sviatky", "Wyjątki i święta", "Exceptions and holidays"],
-  "Volno a výjimky": ["Voľno a výnimky", "Nieobecności i wyjątki", "Time off and exceptions"],
-  "Pobočka pro výjimku": ["Pobočka pre výnimku", "Lokalizacja dla wyjątku", "Location for exception"],
-  "Zvolte pobočku, ve které chcete změnit směnu v konkrétní den.": ["Vyberte pobočku, kde chcete zmeniť zmenu v konkrétny deň.", "Wybierz lokalizację, w której chcesz zmienić grafik w danym dniu.", "Select a location to change a shift on a specific date."],
-  "Jednorázové změny směn": ["Jednorazové zmeny zmien", "Jednorazowe zmiany grafiku", "One-off shift changes"],
-  "Svátky a výjimečná otevírací doba": ["Sviatky a výnimočné otváracie hodiny", "Święta i wyjątkowe godziny otwarcia", "Holidays and special opening hours"],
-  "Dovolená, nemoc, kratší směna či mimořádné hodiny konkrétního pracovníka.": ["Dovolenka, choroba, kratšia zmena či mimoriadne hodiny pracovníka.", "Urlop, choroba, krótsza zmiana lub wyjątkowe godziny pracownika.", "Leave, sick days, shorter shifts or special hours for a worker."],
-  "Zavřeno o svátku, mimořádné otevření nebo kratší provoz na vybraný den.": ["Zatvorené cez sviatok, mimoriadne otvorenie alebo skrátená prevádzka.", "Zamknięcie w święto, wyjątkowe otwarcie lub krótsze godziny pracy.", "Close for a holiday, open exceptionally or shorten hours on a specific day."],
-  "Změna platí jen ve vybraný den.": ["Zmena platí len vo vybraný deň.", "Zmiana dotyczy tylko wybranego dnia.", "The change applies only to the selected date."],
-  "Datum": ["Dátum", "Data", "Date"],
-  "Režim": ["Režim", "Tryb", "Mode"],
-  "Celý den volno": ["Celý deň voľno", "Cały dzień wolny", "Day off"],
-  "Celý den zavřeno": ["Celý deň zatvorené", "Zamknięte cały dzień", "Closed all day"],
-  "Vlastní intervaly": ["Vlastné intervaly", "Własne przedziały godzinowe", "Custom hours"],
-  "Přidat časový interval": ["Pridať časový interval", "Dodaj przedział godzinowy", "Add time interval"],
-  "Uložit výjimku": ["Uložiť výnimku", "Zapisz wyjątek", "Save exception"],
-  "Před uložením se ověří kolize s existujícími rezervacemi. Rezervace se automaticky neruší. Výjimka nahrazuje týdenní rozvrh jen pro dané datum.": ["Pred uložením sa skontrolujú kolízie s rezerváciami. Rezervácie sa automaticky nerušia.", "Przed zapisem sprawdzane są konflikty z rezerwacjami. Rezerwacje nie są automatycznie anulowane.", "Existing booking conflicts are checked first. Bookings are never automatically cancelled."],
-  "Naplánované výjimky (následujících 365 dní)": ["Naplánované výnimky (365 dní)", "Zaplanowane wyjątki (najbliższe 365 dni)", "Planned exceptions (next 365 days)"],
-  "Zatím nemáte žádné výjimky.": ["Zatiaľ nemáte žiadne výnimky.", "Nie masz jeszcze wyjątków.", "No exceptions scheduled yet."],
-  "Vrátit běžný rozvrh": ["Vrátiť bežný rozvrh", "Przywróć zwykły grafik", "Restore regular schedule"],
-  "Zavřeno": ["Zatvorené", "Zamknięte", "Closed"],
-  "Volno": ["Voľno", "Wolne", "Day off"],
-  "Datum nemůže být v minulosti.": ["Dátum nemôže byť v minulosti.", "Data nie może być w przeszłości.", "Date cannot be in the past."],
-  "Zkontrolujte časy. Intervaly se nesmějí překrývat a konec musí být později než začátek.": ["Skontrolujte časy. Intervaly sa nesmú prekrývať.", "Sprawdź godziny. Przedziały nie mogą na siebie zachodzić.", "Check the times. Intervals cannot overlap."],
-  "Neuloženo.": ["Neuložené.", "Nie zapisano.", "Not saved."],
-  "Nejprve rezervace upravte nebo zrušte ručně.": ["Najprv rezervácie upravte alebo zrušte ručne.", "Najpierw ręcznie zmień lub anuluj rezerwacje.", "Change or cancel affected bookings manually first."],
-  "Ostatní dny beze změny.": ["Ostatné dni bez zmeny.", "Pozostałe dni bez zmian.", "Other days are unchanged."],
-  "Znovu platí běžný rozvrh.": ["Znovu platí bežný rozvrh.", "Przywrócono zwykły grafik.", "Regular schedule restored."],
-  "Změna by zasáhla {count} existujících rezervací.": ["Zmena by zasiahla {count} existujúcich rezervácií.", "Zmiana wpłynęłaby na {count} istniejących rezerwacji.", "This would affect {count} existing bookings."],
-  "Vrácení rozvrhu by zasáhlo {count} rezervací.": ["Obnovenie rozvrhu by zasiahlo {count} rezervácií.", "Przywrócenie grafiku wpłynęłoby na {count} rezerwacji.", "Restoring the schedule would affect {count} bookings."],
-  "Výjimka pro {date} byla uložena.": ["Výnimka pre {date} bola uložená.", "Zapisano wyjątek na {date}.", "Exception saved for {date}."],
-  "Pro {date} opět platí běžný rozvrh.": ["Pre {date} opäť platí bežný rozvrh.", "Dnia {date} znów obowiązuje zwykły grafik.", "Regular schedule applies again on {date}."],
-  "Vrátit {date} k běžnému týdennímu rozvrhu?": ["Vrátiť {date} k bežnému týždennému rozvrhu?", "Przywrócić zwykły grafik na {date}?", "Restore the regular weekly schedule for {date}?"],
-
+  "errors.RESOURCE_NOT_FOUND": ["Vybraný zdroj sa nenašiel.", "Nie znaleziono wybranego zasobu.", "The selected resource was not found."],
   "errors.INVALID_RESET_TOKEN": ["Odkaz na obnovenie hesla je neplatný alebo vypršal.", "Link do resetowania hasła jest nieprawidłowy lub wygasł.", "The password reset link is invalid or expired."],
-  "Zapomněli jste heslo?": ["Zabudli ste heslo?", "Nie pamiętasz hasła?", "Forgot your password?"],
-  "Obnovení hesla": ["Obnovenie hesla", "Resetowanie hasła", "Password recovery"],
-  "Pošleme vám odkaz pro nastavení nového hesla.": ["Pošleme vám odkaz na nastavenie nového hesla.", "Wyślemy link do ustawienia nowego hasła.", "We'll email you a link to set a new password."],
-  "Zkontrolujte svou e-mailovou schránku": ["Skontrolujte e-mailovú schránku", "Sprawdź skrzynkę e-mail", "Check your inbox"],
-  "Pokud pro zadaný e-mail existuje účet, poslali jsme odkaz pro změnu hesla.": ["Ak účet existuje, poslali sme odkaz na zmenu hesla.", "Jeśli konto istnieje, wysłaliśmy link do zmiany hasła.", "If an account exists, we have emailed a password reset link."],
-  "Poslat odkaz na obnovu hesla": ["Odoslať odkaz na obnovenie hesla", "Wyślij link do resetowania hasła", "Send password reset link"],
-  "Zpět na přihlášení": ["Späť na prihlásenie", "Powrót do logowania", "Back to login"],
-  "Nastavení nového hesla": ["Nastavenie nového hesla", "Ustaw nowe hasło", "Set a new password"],
-  "Zadejte nové heslo pro svůj účet Bookanear.": ["Zadajte nové heslo pre účet Bookanear.", "Ustaw nowe hasło do konta Bookanear.", "Choose a new password for your Bookanear account."],
-  "Hesla se neshodují.": ["Heslá sa nezhodujú.", "Hasła nie są identyczne.", "Passwords do not match."],
-  "Heslo bylo změněno": ["Heslo bolo zmenené", "Hasło zostało zmienione", "Password changed"],
-  "Nyní se můžete přihlásit novým heslem.": ["Teraz sa môžete prihlásiť novým heslom.", "Możesz teraz zalogować się nowym hasłem.", "You can now log in with your new password."],
-  "Odkaz pro obnovu hesla je neplatný. Požádejte o nový.": ["Odkaz na obnovenie hesla je neplatný. Požiadajte o nový.", "Link do resetowania hasła jest nieprawidłowy. Poproś o nowy.", "This password reset link is invalid. Request a new one."],
-  "Požádat o nový odkaz": ["Požiadať o nový odkaz", "Poproś o nowy link", "Request a new link"],
-  "Nové heslo (min. 12 znaků)": ["Nové heslo (min. 12 znakov)", "Nowe hasło (min. 12 znaków)", "New password (min. 12 characters)"],
-  "Zopakujte nové heslo": ["Zopakujte nové heslo", "Powtórz nowe hasło", "Confirm new password"],
-  "Uložit nové heslo": ["Uložiť nové heslo", "Zapisz nowe hasło", "Save new password"],
-  "LIDÉ A PRACOVNÍ DOBA": ["ĽUDIA A PRACOVNÝ ČAS", "ZESPÓŁ I GODZINY PRACY", "TEAM AND WORKING HOURS"],
-  "Zaměstnanci mohou pracovat na více pobočkách. Jejich pracovní doba se nesmí překrývat.": ["Zamestnanci môžu pracovať na viacerých pobočkách. Pracovný čas sa nesmie prekrývať.", "Pracownicy mogą pracować w kilku lokalizacjach. Ich godziny pracy nie mogą się pokrywać.", "Employees may work across locations without overlapping working hours."],
-  "Změna pracovní doby": ["Zmena pracovného času", "Zmiana godzin pracy", "Working hours change"],
-  "Žádosti o volno a změny pracovní doby": ["Žiadosti o voľno a zmeny pracovného času", "Wnioski o urlop i zmianę godzin pracy", "Time off and working hours requests"],
-  "Pracovník požádá o volno nebo úpravu pracovní doby. Změna se projeví až po schválení, pokud nemá povolené vlastní schvalování.": ["Pracovník požiada o voľno alebo úpravu pracovného času. Zmena sa uplatní až po schválení.", "Pracownik prosi o urlop lub zmianę godzin pracy. Zmiana wymaga zatwierdzenia, chyba że sam może ją zatwierdzać.", "Employees can request time off or changes to working hours. Approval is needed unless self-approval is enabled."],
-  "Formát data": ["Formát dátumu", "Format daty", "Date format"],
-  "Jednorázové změny pracovní doby": ["Jednorazové zmeny pracovného času", "Jednorazowe zmiany godzin pracy", "One-off working hours changes"],
-  "Dovolená, nemoc, zkrácená pracovní doba nebo mimořádné pracovní hodiny.": ["Dovolenka, choroba, skrátený pracovný čas alebo mimoriadne hodiny.", "Urlop, choroba, krótszy czas pracy lub niestandardowe godziny.", "Holiday, illness, shorter working hours or special hours."],
-  "Pracovní doba a služby": ["Pracovný čas a služby", "Godziny pracy i usługi", "Working hours and services"],
-  "Může si sám schvalovat volno a změny pracovní doby": ["Môže si sám schvaľovať voľno a zmeny pracovného času", "Może sam zatwierdzać urlopy i zmiany godzin pracy", "Can approve own time off and working hours changes"],
-  "Tým a pracovní doba": ["Tím a pracovný čas", "Zespół i godziny pracy", "Team and working hours"],
-  "Zvolte pobočku, ve které chcete upravit pracovní dobu ve vybraném dni.": ["Zvoľte pobočku, kde chcete upraviť pracovný čas v daný deň.", "Wybierz lokalizację, w której chcesz zmienić godziny pracy w danym dniu.", "Choose a location to change working hours on a specific date."],
-  "Pracovní doba se nesmí překrývat s pracovní dobou na jiné pobočce ani s existujícími rezervacemi.": ["Pracovný čas sa nesmie prekrývať medzi pobočkami ani s rezerváciami.", "Godziny pracy nie mogą się pokrywać między lokalizacjami ani z rezerwacjami.", "Working hours must not overlap between locations or with existing bookings."],
 };
 const csErrors: Record<string,string> = {
   "errors.NETWORK_ERROR": "Nelze se spojit se serverem. Zkuste to znovu.",
@@ -2445,6 +700,9 @@ const csErrors: Record<string,string> = {
   "errors.NOT_FOUND": "Požadovaný záznam nebyl nalezen.",
   "errors.VALIDATION_ERROR": "Zkontrolujte zadané údaje a zkuste to znovu.",
   "errors.CONFLICT": "Údaje se mezitím změnily nebo vznikla kolize. Obnovte stránku a zkuste to znovu.",
+  "errors.LOCATION_HAS_ACTIVE_RESERVATIONS": "Pobočku nelze zrušit, dokud nezrušíte všechny její budoucí rezervace a přihlášení na události.",
+  "errors.MEMBER_HAS_ACTIVE_RESERVATIONS": "Pracovníka nelze odebrat, dokud nezrušíte nebo nepřeřadíte všechny jeho budoucí rezervace.",
+  "errors.SERVICE_IN_USE": "Službu nelze smazat, protože už byla použita v rezervaci nebo na čekací listině.",
   "errors.RATE_LIMITED": "Příliš mnoho požadavků. Zkuste to za chvíli.",
   "errors.FILE_TOO_LARGE": "Soubor je příliš velký.",
   "errors.SERVICE_UNAVAILABLE": "Služba je dočasně nedostupná. Zkuste to později.",
@@ -2466,8 +724,13 @@ const csErrors: Record<string,string> = {
 
 export function translate(value: string, language: Language = currentLanguage()): string {
   const trimmed = value.trim();
-  const translated = language === 'cs' ? (csErrors[trimmed] || trimmed) :
-    (translations[trimmed]?.[{ sk: 0, pl: 1, en: 2 }[language]] || csErrors[trimmed] || trimmed);
+  const phrase = translations[trimmed];
+  const error = errorTranslations[trimmed];
+  const translated = error
+    ? language === 'cs' ? csErrors[trimmed] || trimmed : error[{ sk: 0, pl: 1, en: 2 }[language]]
+    : phrase
+      ? language === 'en' ? trimmed : phrase[{ cs: 0, sk: 1, pl: 2 }[language]]
+      : csErrors[trimmed] || trimmed;
   return value.slice(0, value.indexOf(trimmed)) + translated + value.slice(value.indexOf(trimmed) + trimmed.length);
 }
 export const tr = translate;

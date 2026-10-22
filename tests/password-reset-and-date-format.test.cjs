@@ -22,7 +22,7 @@ test('legacy Czech route paths redirect to English slugs without losing query pa
   assert.match(app,/path="\/rezervace\/:publicId"/);
   assert.match(app,/to="\/reservations\/:publicId"/);
   assert.match(app,/loc\.search\+loc\.hash/);
-  assert.match(read('pages/AdminSettings.tsx'),/\/reservations\/\$\{org\.public_id\}/);
+  assert.doesNotMatch(read('pages/AdminSettings.tsx'),/\/reservations\/\$\{org\.public_id\}/);
 });
 
 test('date-only values never shift with timezone and owner can set display format',()=>{

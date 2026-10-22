@@ -4,7 +4,7 @@ import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-do
 import { useAuth } from './contexts/AuthContext';
 import { AdminShell } from './components/AdminShell';
 import { HomePage } from './pages/HomePage';
-import { LoginPage, RegisterPage, VerifyPage, ForgotPasswordPage, ResetPasswordPage } from './pages/AuthPages';
+import { LoginPage, RegisterPage, VerifyPage, ForgotPasswordPage, ResetPasswordPage, AcceptInvitePage } from './pages/AuthPages';
 import { PublicBookingPage } from './pages/PublicBookingPage';
 import { PublicEventsPage, ManageEventPage } from './pages/PublicEventsPage';
 import { AdminEvents } from './pages/AdminEvents';
@@ -21,6 +21,7 @@ import { AdminReservations } from './pages/AdminReservations';
 import { AdminCustomers } from './pages/AdminCustomers';
 import { AdminSettings } from './pages/AdminSettings';
 import { AdminAbsenceRequests } from './pages/AdminAbsenceRequests';
+import { AccountPage, ConfirmAccountEmailPage } from './pages/AccountPage';
 
 function RequireAuth({children}:{children:ReactNode}){
   const {token}=useAuth(); const location=useLocation();
@@ -47,6 +48,9 @@ export default function App(){
     <Route path="/verify-email" element={<VerifyPage/>}/>
     <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
     <Route path="/reset-password" element={<ResetPasswordPage/>}/>
+    <Route path="/accept-invite" element={<AcceptInvitePage/>}/>
+    <Route path="/verify-account-email" element={<ConfirmAccountEmailPage/>}/>
+    <Route path="/account" element={<RequireAuth><AccountPage/></RequireAuth>}/>
     <Route path="/reservations/:publicId" element={<PublicBookingRouter/>}/>
     <Route path="/events/manage/:token" element={<ManageEventPage/>}/>
     <Route path="/manage/:token" element={<ManageBookingPage/>}/>

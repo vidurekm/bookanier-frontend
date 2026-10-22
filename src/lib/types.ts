@@ -1,10 +1,10 @@
 export type Id = number;
 export type Dict = Record<string, unknown>;
 export interface Page<T> { items: T[]; page: number; size: number; totalElements: number; totalPages: number }
-export interface Organization { id: number; public_id?: string; name: string; email?: string; phone?: string; default_timezone?: string; booking_enabled?: boolean; registration_status?: string }
+export interface Organization { id: number; public_id?: string; name: string; email?: string; phone?: string; default_timezone?: string; booking_enabled?: boolean; registration_status?: string; setup_status?: 'draft'|'complete'; my_role?: 'owner'|'admin'|'worker' }
 export interface Location { id: number; name: string; address?: string; timezone: string; active: boolean; latitude?: number | null; longitude?: number | null }
 export interface Service { id: number; name: string; description?: string; active: boolean }
-export interface Member { id: number; user_id?: number; display_name: string; role: 'owner'|'admin'|'worker'; active: boolean; can_manage_bookings?: boolean; can_approve_own_absence?: boolean }
+export interface Member { id: number; user_id?: number; email?: string; display_name: string; role: 'owner'|'admin'|'worker'; active: boolean; can_manage_bookings?: boolean; can_approve_own_absence?: boolean }
 export interface Customer { id: number; name: string; email?: string; phone?: string; notes?: string }
 export interface Reservation { id: number; customer_name: string; status: string; total_amount: number; currency: string; created_at: string; location_id?: number }
 export interface ResourceType { id: number; code: string; name: string; category: 'staff'|'space'|'equipment'|'other'; active: boolean }

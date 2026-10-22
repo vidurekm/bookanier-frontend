@@ -12,14 +12,13 @@ React 18 + TypeScript + Vite + TanStack Query + React Router + Lucide, vlastní 
 
 ```powershell
 cd bookanear-frontend
-Copy-Item .env.example .env
 npm install
 npm run dev
 ```
 
 Otevři **http://localhost:5173**. Backend Spring Boot musí běžet na **http://localhost:8080**. Vite proxyuje všechny `/api/*` požadavky na backend, takže není nutné nastavovat CORS.
 
-> Pokud Spring Boot běží na jiném portu, změň `VITE_API_PROXY_TARGET` v `.env` a restartuj Vite.
+Lokální nastavení Vite je v ignorovaném souboru `.env.local` (`VITE_API_PROXY_TARGET` a volitelně `VITE_PUBLIC_ORG_ID`). Pokud Spring Boot běží na jiném portu, změň proxy target a restartuj Vite.
 
 ## Backendová integrace
 
@@ -40,7 +39,7 @@ Backend používá existující tabulky z V1–V5 a zachovává přístupové ko
 1. Zaregistruj organizaci na `/registrace`, potvrď e-mail a přihlas se na `/prihlaseni`.
 2. **Pobočky:** vytvoř pobočku, nastav otevírací dobu, přiřaď jí služby.
 3. **Služby:** vytvoř službu, přidej cenovou verzi platnou pro zvolené datum, případně požadavky na zdroje.
-4. **Tým:** přidej pracovníka, přiřaď mu pobočky, služby a týdenní směny. Pokud služba vyžaduje pracovníka, vytvoř také `staff` resource s jeho `memberId`.
+4. **Tým:** v průvodci nastavením zadej každému členovi týmu jméno a e-mail. Dokončení nastavení vyžaduje platný, jedinečný e-mail a odešle členu 24hodinovou pozvánku navázanou na jeho nastavenou roli a rozvrh. Nový pracovník vytvoří účet při přijetí, zatímco existující uživatel se přihlásí a připojí stejný účet. Další pracovníky lze pozvat také ve správě týmu. Jeden účet může přepínat mezi všemi svými organizacemi. Poté pracovníkovi přiřaď pobočky, služby a týdenní směny. Pokud služba vyžaduje pracovníka, vytvoř také `staff` resource s jeho `memberId`.
 5. **Zdroje:** vytvoř typy zdrojů a konkrétní vybavení/prostory na pobočkách. U služby nastav požadované typy a množství.
 6. **Nastavení:** zkopíruj veřejný odkaz `/rezervace/{public_id}`. Rezervace bez přihlášení vytvoří zákazník přes `/api/v1/bookings/universal` nebo starší `/api/v1/bookings`.
 
@@ -101,4 +100,3 @@ services:
 
 - **Java 21:** doplněk backendu úspěšně zkompilován s dostupnými Spring knihovnami a zdrojovými soubory ze ZIPu; S3 třídy vyžadují AWS SDK z Maven buildu.
 - **Frontend:** TS/TSX syntaxe zkontrolována. `npm install` v tomto prostředí nebylo možné dokončit kvůli nedostupnosti npm registry (`EAI_AGAIN`), proto **nelze tvrdit, že `npm run build` nebo UI integrační testy byly spuštěny**. Spusť je lokálně po instalaci balíčků.
-

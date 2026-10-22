@@ -5,7 +5,7 @@ const path = require('node:path');
 const src = (file) => fs.readFileSync(path.join(__dirname, '..', 'src', file), 'utf8');
 test('verification uses existing branded login layout with only login success action', () => {
   const auth=src('pages/AuthPages.tsx');
-  assert.match(auth, /<AuthLayout title=.*Ov/);
+  assert.match(auth, /<AuthLayout title=.*Invitation acceptance/);
   assert.match(auth, /<BrandLogo light tagline\/>/);
   assert.match(auth, /to="\/login"/);
   assert.doesNotMatch(auth, /className="btn btn-secondary" to="\/"/);
