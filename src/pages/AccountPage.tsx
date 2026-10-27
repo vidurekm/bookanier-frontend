@@ -35,6 +35,8 @@ export function AccountSettingsPanel() {
     const [newPassword,setNewPassword]=useState('');
     const [emailOpen,setEmailOpen]=useState(false);
     const [passwordOpen,setPasswordOpen]=useState(false);
+    const [deleteAccountOpen,setDeleteAccountOpen]=useState(false);
+    const [deleteAccountEmail,setDeleteAccountEmail]=useState('');
     const [message,setMessage]=useState('');
     const [error,setError]=useState('');
     useEffect(()=>{if(account)setName(account.name);},[account?.name]);
@@ -50,6 +52,11 @@ export function AccountSettingsPanel() {
         mutationFn:()=>api('/auth/me/password',json('PUT',{currentPassword,newPassword})),
         onSuccess:()=>{logout();navigate('/login',{replace:true,state:{notice:tr('Password updated. Please sign in again.')}});}
     });
+    const deleteAccount=useMutation({
+        mutationFn:()=>api<void>('/auth/me',{method:'DELETE'}),
+        onSuccess:()=>{logout();navigate('/login',{replace:true});},
+        onError:e=>setError(safeErrorMessage(e))
+    });
     function submitName(event:FormEvent){event.preventDefault();setError('');setMessage('');saveName.mutate(undefined,{onError:e=>setError(safeErrorMessage(e))});}
     function submitEmail(event:FormEvent){event.preventDefault();setError('');setMessage('');requestEmail.mutate(undefined,{onError:e=>setError(safeErrorMessage(e))});}
     function submitPassword(event:FormEvent){event.preventDefault();setError('');setMessage('');changePassword.mutate(undefined,{onError:e=>setError(safeErrorMessage(e))});}
@@ -57,12 +64,14 @@ export function AccountSettingsPanel() {
     return <>
         <Notice message={error}/><Notice message={message} kind="success"/>
         {isLoading?<Loading/>:loadError?<Notice message={safeErrorMessage(loadError)}/>:account&&<div className="account-grid">
-            <Card><div className="card-heading"><UserRound size={20}/><h2>{tr('Name')}</h2></div><form className="stack" onSubmit={submitName}><Field label={tr('Full name')}><Input required maxLength={200} value={name} onChange={e=>setName(e.target.value)}/></Field><Button type="submit" loading={saveName.isPending}>{tr('Save name')}</Button></form></Card>
-            <Card><div className="card-heading"><Mail size={20}/><h2>{tr('Email address')}</h2></div><div className="stack"><p>{tr('Current email')}: <strong>{account.email}</strong></p>{account.pendingEmail&&<Notice kind="info" message={`${tr('Waiting for confirmation')}: ${account.pendingEmail}`}/>}<Button variant="secondary" onClick={()=>{setEmailOpen(true);setError('');setMessage('');}}>{tr('Change email address')}</Button></div></Card>
-            <Card><div className="card-heading"><ShieldCheck size={20}/><h2>{tr('Password')}</h2></div><div className="stack"><p className="muted small">{tr('Changing your password signs you out of all sessions.')}</p><Button variant="secondary" onClick={()=>{setPasswordOpen(true);setError('');setMessage('');}}>{tr('Change password')}</Button></div></Card>
+            <Card><div className="card-heading"><UserRound size={20}/><h2>{tr('Name')}</h2></div><form className="stack" onSubmit={submitName}><Field label={tr('Full name')}><Input required maxLength={200} value={name} onChange={e=>setName(e.target.value)}/></Field><div className="settings-button-row"><Button type="submit" loading={saveName.isPending}>{tr('Save name')}</Button></div></form></Card>
+            <Card><div className="card-heading"><Mail size={20}/><h2>{tr('Email address')}</h2></div><div className="stack"><p>{tr('Current email')}: <strong>{account.email}</strong></p>{account.pendingEmail&&<Notice kind="info" message={`${tr('Waiting for confirmation')}: ${account.pendingEmail}`}/>}<div className="settings-button-row"><Button variant="secondary" onClick={()=>{setEmailOpen(true);setError('');setMessage('');}}>{tr('Change email address')}</Button></div></div></Card>
+            <Card><div className="card-heading"><ShieldCheck size={20}/><h2>{tr('Password')}</h2></div><div className="stack"><p className="muted small">{tr('Changing your password signs you out of all sessions.')}</p><div className="settings-button-row"><Button variant="secondary" onClick={()=>{setPasswordOpen(true);setError('');setMessage('');}}>{tr('Change password')}</Button></div></div></Card>
+            <Card className="danger-zone"><div className="card-heading"><ShieldCheck size={20}/><h2>{tr('Delete account')}</h2></div><div className="stack"><p className="muted small">{tr('Permanently delete your account. Organizations you own and their data will also be deleted.')}</p><div className="settings-button-row"><Button variant="danger" onClick={()=>{setDeleteAccountEmail('');setError('');setMessage('');setDeleteAccountOpen(true);}}>{tr('Delete account')}</Button></div></div></Card>
         </div>}
         {emailOpen&&<Modal title={tr('Change email address')} onClose={()=>setEmailOpen(false)}><form className="stack" onSubmit={submitEmail}><Notice message={error}/><Field label={tr('New email address')}><Input required type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)}/></Field><Field label={tr('Current password')}><Input required type="password" autoComplete="current-password" value={emailPassword} onChange={e=>setEmailPassword(e.target.value)}/></Field><p className="muted small">{tr('We will change your email only after you confirm the link sent to the new address.')}</p><div className="form-actions"><Button type="button" variant="secondary" onClick={()=>setEmailOpen(false)}>{tr('Cancel')}</Button><Button type="submit" loading={requestEmail.isPending}>{tr('Send confirmation email')}</Button></div></form></Modal>}
         {passwordOpen&&<Modal title={tr('Change password')} onClose={()=>setPasswordOpen(false)}><form className="stack" onSubmit={submitPassword}><Notice message={error}/><Field label={tr('Current password')}><Input required type="password" autoComplete="current-password" value={currentPassword} onChange={e=>setCurrentPassword(e.target.value)}/></Field><Field label={tr('New password')}><Input required type="password" minLength={8} maxLength={128} autoComplete="new-password" value={newPassword} onChange={e=>setNewPassword(e.target.value)}/></Field><p className="muted small">{tr('Changing your password signs you out of all sessions.')}</p><div className="form-actions"><Button type="button" variant="secondary" onClick={()=>setPasswordOpen(false)}>{tr('Cancel')}</Button><Button type="submit" loading={changePassword.isPending}>{tr('Update password')}</Button></div></form></Modal>}
+        {deleteAccountOpen&&account&&<Modal title={tr('Delete account')} onClose={()=>setDeleteAccountOpen(false)}><form className="stack" onSubmit={event=>{event.preventDefault();if(deleteAccountEmail===account.email)deleteAccount.mutate();}}><Notice message={error}/><p>{tr('Permanently delete your account. Organizations you own and their data will also be deleted.')}</p><Field label={tr('Type your email address to confirm')}><Input required type="email" autoComplete="off" value={deleteAccountEmail} onChange={event=>setDeleteAccountEmail(event.target.value)}/></Field><div className="form-actions"><Button type="button" variant="secondary" onClick={()=>setDeleteAccountOpen(false)}>{tr('Cancel')}</Button><Button type="submit" variant="danger" loading={deleteAccount.isPending} disabled={deleteAccountEmail!==account.email}>{tr('Delete account')}</Button></div></form></Modal>}
     </>;
 }
 

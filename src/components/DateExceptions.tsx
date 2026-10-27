@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarOff, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { json, orgApi } from '../lib/api';
@@ -7,6 +7,8 @@ import { tr, translateWith } from '../lib/translations';
 import { Button, ErrorState, Loading, Notice } from './UI';
 import { formattedDate } from '../lib/dateFormat';
 import { useConfirm } from '../contexts/ConfirmContext';
+import { UiError } from '../lib/errors';
+import { useMemberDetailSave } from './MemberDetailSaveContext';
 
 type TimeInterval = { from: string; to: string };
 type ApiRow = { id: number; work_date: string; start_time: string|null; end_time: string|null };
@@ -33,10 +35,20 @@ export function DateExceptions({org,location,member}:{org:number;location:number
   const [error,setError] = useState('');
   const [success,setSuccess] = useState('');
   const [busy,setBusy] = useState(false);
+  const [staged,setStaged] = useState<Record<string,TimeInterval[]|null>>({});
   const from=localDate(), to=localDate(365);
   const key=['date-exceptions',org,path,from,to];
   const query=useQuery({queryKey:key,queryFn:()=>orgApi<ApiRow[]>(org,`${path}?from=${from}&to=${to}`)});
   const entries=useMemo(()=>dayGroups(query.data||[]),[query.data]);
+  const visibleEntries=useMemo(()=>{
+    const savedByDate=new Map(entries.map(day=>[day.date,day.intervals]));
+    const dates=new Set([...savedByDate.keys(),...Object.keys(staged)]);
+    return [...dates].map(dayDate=>{
+      const isStaged=Object.prototype.hasOwnProperty.call(staged,dayDate);
+      const removalPending=isStaged&&staged[dayDate]===null;
+      return {date:dayDate,intervals:removalPending?savedByDate.get(dayDate)||[]:isStaged?staged[dayDate]||[]:savedByDate.get(dayDate)||[],pending:isStaged,removalPending};
+    }).sort((a,b)=>a.date.localeCompare(b.date));
+  },[entries,staged]);
   function editDay(day:{date:string;intervals:TimeInterval[]}) {
     setDate(day.date); setMode(day.intervals.length?'custom':'closed');
     setIntervals(day.intervals.length?day.intervals:[{from:'09:00',to:'17:00'}]);setEditingDate(day.date);setError('');setSuccess('');
@@ -50,6 +62,35 @@ export function DateExceptions({org,location,member}:{org:number;location:number
     }
     return actual;
   }
+  function stageException() {
+    const actual=validateIntervals();if(!actual)return;
+    setStaged(current=>({...current,[date]:actual}));
+    setEditingDate(null);setError('');setSuccess(tr('Exception added to pending changes.'));
+  }
+  const saveDraft=useCallback(async()=>{
+    const changes=Object.entries(staged).sort(([a],[b])=>a.localeCompare(b));
+    if(!changes.length)return;
+    const updates=changes.filter((entry):entry is [string,TimeInterval[]]=>entry[1]!==null).map(([changedDate,changedIntervals])=>({date:changedDate,intervals:changedIntervals}));
+    const removals=changes.filter((entry):entry is [string,null]=>entry[1]===null).map(([changedDate])=>changedDate);
+    const chunks:typeof updates[]=[];
+    for(let i=0;i<updates.length;i+=62)chunks.push(updates.slice(i,i+62));
+    let conflictCount=0;
+    for(const days of chunks){
+      const preview=await orgApi<Preview>(org,`${path}?dryRun=true`,json('PUT',{days}));
+      conflictCount+=preview.conflictCount;
+    }
+    for(const changedDate of removals){
+      const preview=await orgApi<Preview>(org,`${path}/${changedDate}?dryRun=true`,{method:'DELETE'});
+      conflictCount+=preview.conflictCount;
+    }
+    if(conflictCount>0)throw new UiError(`${translateWith('This would affect {count} existing bookings.',{count:conflictCount})} ${tr('Not saved.')} ${tr('Change or cancel affected bookings manually first.')}`);
+    for(const days of chunks)await orgApi(org,path,json('PUT',{days}));
+    for(const changedDate of removals)await orgApi(org,`${path}/${changedDate}`,{method:'DELETE'});
+    setStaged({});
+    setEditingDate(null);
+    await qc.invalidateQueries({queryKey:['date-exceptions',org,path]});
+  },[org,path,qc,staged]);
+  useMemberDetailSave(`exceptions-${location}-${member ?? 'location'}`,3,!!member&&Object.keys(staged).length>0,saveDraft);
   async function save() {
     const actual=validateIntervals();if(!actual)return;
     setBusy(true);setError('');setSuccess('');
@@ -66,6 +107,11 @@ export function DateExceptions({org,location,member}:{org:number;location:number
   }
   async function resetDay(resetDate:string) {
     if(!await confirm(translateWith('Restore the regular weekly schedule for {date}?',{date:formattedDate(resetDate)}),{variant:'primary'}))return;
+    if(member){
+      setStaged(current=>({...current,[resetDate]:null}));
+      setError('');setSuccess(tr('Exception added to pending changes.'));
+      return;
+    }
     setBusy(true);setError('');setSuccess('');
     try {
       const preview=await orgApi<Preview>(org,`${path}/${resetDate}?dryRun=true`,{method:'DELETE'});
@@ -81,9 +127,9 @@ export function DateExceptions({org,location,member}:{org:number;location:number
     <Notice message={error}/><Notice kind="success" message={success}/>
     <div className="date-exception-form" ref={formRef}><label>{tr('Date')}<input className="input" type="date" value={date} min={from} max={to} onChange={e=>{setDate(e.target.value);setEditingDate(null);}}/></label><label>{tr('Mode')}<select className="input" value={mode} onChange={e=>setMode(e.target.value as 'closed'|'custom')}><option value="closed">{member?tr('Day off'):tr('Closed all day')}</option><option value="custom">{tr('Custom hours')}</option></select></label></div>
     {mode==='custom'&&<div className="stack">{intervals.map((slot,i)=><div className="date-exception-row" key={i}><input className="input" type="time" value={slot.from} onChange={e=>setIntervals(prev=>prev.map((x,j)=>i===j?{...x,from:e.target.value}:x))}/><span>–</span><input className="input" type="time" value={slot.to} onChange={e=>setIntervals(prev=>prev.map((x,j)=>i===j?{...x,to:e.target.value}:x))}/><button type="button" className="text-button danger" onClick={()=>setIntervals(prev=>prev.filter((_,j)=>j!==i))}><Trash2 size={16}/>Odebrat</button></div>)}<button className="text-button" type="button" onClick={()=>setIntervals(prev=>[...prev,{from:'09:00',to:'17:00'}])}><Plus size={16}/>{tr('Add time interval')}</button></div>}
-    <div><Button loading={busy} onClick={save}>{editingDate?tr('Save changes'):tr('Save exception')}</Button></div>
+    <div>{member?<Button type="button" onClick={stageException}>{editingDate?tr('Add changes to pending'):tr('Add exception to pending')}</Button>:<Button loading={busy} onClick={save}>{editingDate?tr('Save changes'):tr('Save exception')}</Button>}</div>
     <p className="muted small">{tr('Existing booking conflicts are checked first. Bookings are never automatically cancelled.')}</p>
     <h3>{tr('Planned exceptions (next 365 days)')}</h3>
-    {query.isLoading?<Loading/>:query.error?<ErrorState error={query.error}/>:entries.length===0?<p className="muted">{tr('No exceptions scheduled yet.')}</p>:entries.map(day=><div className="date-exception-row" key={day.date}><strong>{formattedDate(day.date)}</strong><span>{day.intervals.length?day.intervals.map(i=>`${i.from}–${i.to}`).join(', '):(member?tr('Day off'):tr('Closed'))}</span><button type="button" className="text-button" onClick={()=>editDay(day)}>{tr('Edit')}</button><button type="button" className="text-button danger" disabled={busy} onClick={()=>resetDay(day.date)}><RotateCcw size={15}/>{tr('Restore regular schedule')}</button></div>)}
+    {query.isLoading?<Loading/>:query.error?<ErrorState error={query.error}/>:visibleEntries.length===0?<p className="muted">{tr('No exceptions scheduled yet.')}</p>:visibleEntries.map(day=><div className="date-exception-row" key={day.date}><strong>{formattedDate(day.date)}</strong><span>{day.removalPending?tr('Exception will be removed when changes are saved.'):day.intervals.length?day.intervals.map(i=>`${i.from}–${i.to}`).join(', '):(member?tr('Day off'):tr('Closed'))}</span>{day.pending&&<span className="badge badge-orange">{tr('Pending changes')}</span>}{day.pending?<button type="button" className="text-button" onClick={()=>setStaged(current=>{const next={...current};delete next[day.date];return next;})}>{tr('Undo pending change')}</button>:<button type="button" className="text-button" onClick={()=>editDay(day)}>{tr('Edit')}</button>}<button type="button" className="text-button danger" disabled={busy} onClick={()=>resetDay(day.date)}><RotateCcw size={15}/>{tr('Restore regular schedule')}</button></div>)}
   </div>;
 }

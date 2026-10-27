@@ -15,6 +15,7 @@ function load(name, dependencies = {}) {
   return module.exports;
 }
 const translations = load('translations.ts');
+const setupTranslations = load('setupTranslations.ts', { './translations': translations });
 const errors = load('errors.ts', { './translations': translations });
 
 test('all supported languages translate navigation and booking', () => {
@@ -29,8 +30,28 @@ test('all supported languages translate navigation and booking', () => {
   assert.equal(translations.tr('Invite staff member'), 'Pozvat zaměstnance');
   assert.equal(translations.tr('Organization logo'), 'Logo organizace');
   assert.equal(translations.tr('Customers'), 'Zákazníci');
+  assert.equal(translations.tr('Good morning, Jane 👋'), 'Dobré ráno, Jano 👋');
   language = 'en';
   assert.equal(translations.tr('Invite staff member'), 'Invite staff member');
+});
+
+test('setup and group-event screens are localized in Czech and other supported languages', () => {
+  const expected = {
+    cs: ['Nastavit Bookanear', 'Zákazníci si rezervují pracovníka, službu a konkrétní termín.', 'Vytvořit lekci'],
+    sk: ['Nastavenie Bookanear', 'Zákazník si rezervuje pracovníka, službu a konkrétny čas.', 'Vytvoriť lekciu'],
+    pl: ['Konfiguracja Bookanear', 'Klient rezerwuje pracownika, usługę i konkretny termin.', 'Utwórz zajęcia'],
+    en: ['Set up Bookanear', 'Customers book a staff member, service and time slot.', 'Create a class'],
+  };
+  for (const [locale, values] of Object.entries(expected)) {
+    language = locale;
+    assert.deepEqual([
+      setupTranslations.st('Set up Bookanear'),
+      setupTranslations.st('Customers book a staff member, service and time slot.'),
+      setupTranslations.st('Create a class'),
+    ], values);
+  }
+  language = 'cs';
+  assert.equal(setupTranslations.st('Opening-hours intervals per week: {intervals}', { intervals: 14 }), 'Počet intervalů otevírací doby za týden: 14');
 });
 
 test('email examples and form validation messages use the selected language', () => {

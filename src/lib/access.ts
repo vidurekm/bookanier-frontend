@@ -4,6 +4,7 @@ export interface OrganizationAccess {
   canWrite:boolean;
   isOwner:boolean;
   canManageBookings:boolean;
+  canManageOwnBookings:boolean;
   canApproveOwnAbsence:boolean;
 }
 export const myAccess=(org:number)=>orgApi<OrganizationAccess>(org,'/access');

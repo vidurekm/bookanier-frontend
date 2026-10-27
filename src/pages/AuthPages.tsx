@@ -7,8 +7,10 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { api, json } from '../lib/api';
+import { api, ApiError, json } from '../lib/api';
 import { Button, Field, Input, Notice } from '../components/UI';
+import { useQueryClient } from '@tanstack/react-query';
+import type { Organization, Page } from '../lib/types';
 export function LoginPage() {
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -60,28 +62,53 @@ export function AcceptInvitePage() {
     return <AuthLayout title={tr('Invitation acceptance')} subtitle={tr('Join the team and use your account across organizations.')}>
       {done ? <div className="success-panel"><CheckCircle2 size={36}/><h3>{tr('Invitation accepted')}</h3><p>{sessionToken ? tr('You can now open the organization.') : tr('Now sign in to your account and open the workspace.')}</p><Link className="btn btn-primary" to={sessionToken?'/admin/overview':'/login'}>{sessionToken ? tr('Open organization') : tr('Go to sign in')}</Link></div>
       : !/^[A-Za-z0-9_-]{32,128}$/.test(token) ? <Notice message={tr('This invitation link is invalid or expired.')}/>
-      : <form className="stack" onSubmit={accept}><Notice message={error}/>{info ? <><p>{tr('Invitation to organization')} <strong>{info.organizationName}</strong></p><p className="muted">{info.displayName} · {info.email} · {roleLabelText(info.role)}</p>{sessionToken ? <Button className="btn-full" type="submit" loading={busy}>{tr('Accept invitation')}</Button> : info.accountExists ? <><p className="muted">{tr('This email already has an account. Sign in to accept the invitation.')}</p><Button type="button" className="btn-full" onClick={()=>navigate('/login',{state:{from:returnTo}})}>{tr('Sign in')}</Button></> : <><Field label={tr('Create a password (min. 8 characters)')}><Input type="password" autoComplete="new-password" minLength={8} maxLength={128} required value={password} onChange={e=>setPassword(e.target.value)}/></Field><Button className="btn-full" type="submit" loading={busy}>{tr('Create account and accept invitation')}</Button></>}</> : !error && <p className="muted">{tr('Checking invitation?')}</p>}</form>}
+      : <form className="stack" onSubmit={accept}><Notice message={error}/>{info ? <><p>{tr('Invitation to organization')} <strong>{info.organizationName}</strong></p><p className="muted">{info.displayName} · {info.email} · {roleLabelText(info.role)}</p>{sessionToken ? <Button className="btn-full" type="submit" loading={busy}>{tr('Accept invitation')}</Button> : info.accountExists ? <><p className="muted">{tr('This email already has an account. Sign in to accept the invitation.')}</p><Button type="button" className="btn-full" onClick={()=>navigate('/login',{state:{from:returnTo}})}>{tr('Sign in')}</Button></> : <><Field label={tr('Create a password (min. 8 characters)')}><Input type="password" autoComplete="new-password" minLength={8} maxLength={128} required value={password} onChange={e=>setPassword(e.target.value)}/></Field><Button className="btn-full" type="submit" loading={busy}>{tr('Create account and accept invitation')}</Button></>}</> : !error && <p className="muted">{tr('Checking invitation…')}</p>}</form>}
     </AuthLayout>;
 }
 function roleLabelText(role: string) { return role === 'owner' ? tr('Owner') : role === 'admin' ? tr('Administrator') : tr('Employee'); }
 export function RegisterPage() {
     const [data, setData] = useState({ organizationName: '', ownerName: '', email: '', password: '' });
+    const { token } = useAuth();
+    const queryClient = useQueryClient();
+    const navigate = useNavigate();
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const update = (k: keyof typeof data, v: string) => setData(p => ({ ...p, [k]: v }));
     async function submit(e: FormEvent) { e.preventDefault(); setBusy(true); setError(tr("")); try {
+        if (token) {
+            const organization = await api<{ id: number }>('/backoffice/organizations', json('POST', { name: data.organizationName }));
+            sessionStorage.setItem('bookanear_org_id', String(organization.id));
+            queryClient.setQueryData<Page<Organization>>(['organizations'], current => {
+                const items = current?.items.filter(item => item.id !== organization.id) ?? [];
+                const alreadyListed = current?.items.some(item => item.id === organization.id) ?? false;
+                const totalElements = (current?.totalElements ?? 0) + (alreadyListed ? 0 : 1);
+                const size = current?.size ?? 100;
+                return {
+                    items: [{ id: organization.id, name: data.organizationName.trim(), setup_status: 'draft', my_role: 'owner' }, ...items],
+                    page: current?.page ?? 0,
+                    size,
+                    totalElements,
+                    totalPages: Math.ceil(totalElements / size),
+                };
+            });
+            await queryClient.invalidateQueries({ queryKey: ['organizations'] });
+            navigate('/admin/overview', { replace: true });
+            return;
+        }
         await api('/registration', json('POST', { ...data, language: currentLanguage() }), false);
         setData({ organizationName: '', ownerName: '', email: '', password: '' });
         setSuccess(tr("Registration successful. Check your email to verify your account."));
     }
     catch (err) {
-        setError(safeErrorMessage(err));
+        setError(!token && err instanceof ApiError && err.status === 409
+            ? tr("This email already has an account. Sign in to create an organization.")
+            : safeErrorMessage(err));
     }
     finally {
         setBusy(false);
     } }
-    return <AuthLayout title={tr("Start taking bookings")} subtitle={tr("Create an organization and set up your locations.")}><form className="stack" onSubmit={submit}><Notice message={error}/><Notice message={success} kind="success"/><Field label={tr("Organization name")}><Input value={data.organizationName} onChange={e => update('organizationName', e.target.value)} placeholder={tr("e.g. Aurora Studio")} required/></Field><Field label={tr("Your name")}><Input value={data.ownerName} onChange={e => update('ownerName', e.target.value)} placeholder={tr("Jane Smith")} required/></Field><Field label={tr("Email")}><Input type="email" value={data.email} onChange={e => update('email', e.target.value)} required/></Field><Field label={tr("Password (min. 8 characters)")}><Input type="password" minLength={8} maxLength={128} value={data.password} onChange={e => update('password', e.target.value)} autoComplete="new-password" required/></Field><Button loading={busy} type="submit" className="btn-full">{tr("Create account ")}<ArrowRight size={17}/></Button><p className="auth-footer">{tr("Already have an account? ")}<Link to="/login">{tr("Sign in")}</Link></p></form></AuthLayout>;
+    return <AuthLayout title={token ? tr("Create organization") : tr("Start taking bookings")} subtitle={token ? tr("Create an organization with your existing account.") : tr("Create an organization and set up your locations.")}><form className="stack" onSubmit={submit}><Notice message={error}/><Notice message={success} kind="success"/>{token && <p className="muted">{tr("Your existing account will become the organization owner. No additional account will be created.")}</p>}<Field label={tr("Organization name")}><Input value={data.organizationName} onChange={e => update('organizationName', e.target.value)} placeholder={tr("e.g. Aurora Studio")} required/></Field>{!token && <><Field label={tr("Your name")}><Input value={data.ownerName} onChange={e => update('ownerName', e.target.value)} placeholder={tr("Jane Smith")} required/></Field><Field label={tr("Email")}><Input type="email" value={data.email} onChange={e => update('email', e.target.value)} required/></Field><Field label={tr("Password (min. 8 characters)")}><Input type="password" minLength={8} maxLength={128} value={data.password} onChange={e => update('password', e.target.value)} autoComplete="new-password" required/></Field></>}<Button loading={busy} type="submit" className="btn-full">{token ? tr("Create organization") : tr("Create account ")}<ArrowRight size={17}/></Button>{token ? <p className="auth-footer"><Link to="/admin/overview">{tr("Back to workspace")}</Link></p> : <p className="auth-footer">{tr("Already have an account? ")}<Link to="/login">{tr("Sign in")}</Link></p>}</form></AuthLayout>;
 }
 export function VerifyPage() {
     const [params] = useSearchParams();

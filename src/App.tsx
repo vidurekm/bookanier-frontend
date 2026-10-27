@@ -19,6 +19,7 @@ import { AdminTeam } from './pages/AdminTeam';
 import { AdminResources } from './pages/AdminResources';
 import { AdminReservations } from './pages/AdminReservations';
 import { AdminCustomers } from './pages/AdminCustomers';
+import { AdminBookingCustomers } from './pages/AdminBookingCustomers';
 import { AdminSettings } from './pages/AdminSettings';
 import { AdminAbsenceRequests } from './pages/AdminAbsenceRequests';
 import { AccountPage, ConfirmAccountEmailPage } from './pages/AccountPage';
@@ -64,6 +65,7 @@ export default function App(){
       <Route path="team" element={<AdminTeam/>}/>
       <Route path="resources" element={<AdminResources/>}/>
       <Route path="customers" element={<AdminCustomers/>}/>
+      <Route path="booking-customers" element={<AdminBookingCustomers/>}/>
       <Route path="settings" element={<AdminSettings/>}/>
       <Route path="absence-requests" element={<AdminAbsenceRequests/>}/>
       {[

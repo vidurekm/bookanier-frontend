@@ -107,7 +107,7 @@ export function Pager({ page, totalPages, onChange }: {
     totalPages: number;
     onChange: (n: number) => void;
 }) { if (totalPages <= 1)
-    return null; return <div className="pager"><Button variant="ghost" disabled={page === 0} onClick={() => onChange(page - 1)}><ChevronLeft size={16}/>{tr("Previous")}</Button><span>{tr("Page ")}{page + 1}{tr("of ")}{totalPages}</span><Button variant="ghost" disabled={page >= totalPages - 1} onClick={() => onChange(page + 1)}>{tr("Next ")}<ChevronRight size={16}/></Button></div>; }
+    return null; return <div className="pager"><Button variant="ghost" disabled={page === 0} onClick={() => onChange(page - 1)}><ChevronLeft size={16}/>{tr("Previous")}</Button><span>{tr("Page")} <strong>{page + 1}</strong> {tr("of")} <strong>{totalPages}</strong></span><Button variant="ghost" disabled={page >= totalPages - 1} onClick={() => onChange(page + 1)}>{tr("Next ")}<ChevronRight size={16}/></Button></div>; }
 export function useFeedback() { const [error, setError] = useState(''); const [success, setSuccess] = useState(''); const clear = () => { setError(tr("")); setSuccess(tr("")); }; return { error, success, setError, setSuccess, clear }; }
 export function SubmitRow({ busy, onCancel, label = tr('Save changes') }: {
     busy: boolean;

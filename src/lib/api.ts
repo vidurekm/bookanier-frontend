@@ -53,7 +53,7 @@ export const locations = (org:number) => list<Location>(org,'/locations');
 export const services = (org:number) => list<Service>(org,'/services');
 export const members = (org:number) => list<Member>(org,'/members');
 export const customers = (org:number,params?:Record<string,string|number|undefined>) => list<Customer>(org,'/customers',params);
-export const reservations = (org:number,params?:Record<string,string|number|undefined>) => list<Reservation>(org,'/reservations',params);
+export const reservations = (org:number,params?:Record<string,string|number|boolean|undefined>) => list<Reservation>(org,'/reservations',params);
 export const resourceTypes = (org:number) => orgApi<ResourceType[]>(org,'/resource-types');
 export const resources = (org:number,loc:number) => orgApi<Resource[]>(org,`/locations/${loc}/resources`);
 export const versions = (org:number,id:number) => orgApi<Version[]>(org,`/services/${id}/versions`);
