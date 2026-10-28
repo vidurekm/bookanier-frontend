@@ -1,27 +1,31 @@
-import { tr, translateWith } from '../lib/translations';
+﻿import { tr, translateWith } from '../lib/translations';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, CalendarDays, Clock3, MapPin, Plus, TrendingUp, UsersRound } from 'lucide-react';
-import { useAdmin } from '../components/AdminShell';
+import { ArrowRight, CalendarDays, Eye, Clock3, MapPin, Plus, TrendingUp, UsersRound, Wrench } from 'lucide-react';
+import { useAdmin } from '../lib/useAdmin';
 import { locations, reservations, members } from '../lib/api';
 import { getSetup } from '../lib/setup';
 import { eventOccurrences } from '../lib/events';
 import { st } from '../lib/setupTranslations';
 import { myAccess } from '../lib/access';
-import { formatDateTime, money, statusLabel } from '../lib/utils';
-import { Badge, Card, Empty, ErrorState, Loading, PageTitle } from '../components/UI';
+import { formatDateTime, formatDateTimeRange, money, nameInitials, statusLabel, statusTone } from '../lib/utils';
+import { Badge, Card, Empty, ErrorState, Loading, Modal, PageTitle } from '../components/UI';
+import { ReservationDetail } from '../components/ReservationDetail';
 
 export function AdminOverview() {
     const { orgId, org } = useAdmin();
+    const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
     const access = useQuery({ queryKey: ['access', orgId], queryFn: () => myAccess(orgId), retry: false });
     const canWrite = access.data?.canWrite === true;
     const hasMember = access.data?.ownMemberId != null;
     const setupQuery = useQuery({ queryKey: ['setup', orgId], queryFn: () => getSetup(orgId) });
     const model = setupQuery.data?.booking_model;
-    const bookings = useQuery({ queryKey: ['reservations', orgId, 'overview'], queryFn: () => reservations(orgId, { size: 8 }) });
+    const hasResources = model === 'RESOURCE' || model === 'RENTAL' || setupQuery.data?.settings.trackResources === true;
+    const bookings = useQuery({ queryKey: ['reservations', orgId, 'overview'], queryFn: () => reservations(orgId, { size: 9 }) });
     const pendingBookings = useQuery({
-        queryKey: ['reservations', orgId, 'upcoming-pending-count'],
-        queryFn: () => reservations(orgId, { size: 1, status: 'pending', upcomingOnly: true })
+        queryKey: ['reservations', orgId,         'upcoming-confirmed-count'],
+                queryFn: () => reservations(orgId, { size: 1, status: 'confirmed', upcomingOnly: true })
     });
     const locs = useQuery({ queryKey: ['locations', orgId], queryFn: () => locations(orgId), enabled: canWrite });
     const team = useQuery({ queryKey: ['members', orgId], queryFn: () => members(orgId), retry: false, enabled: canWrite });
@@ -45,7 +49,7 @@ export function AdminOverview() {
             </div>}
             <div className="overview-grid">
                 {canWrite && <Card><h3>{st('Classes and sessions')}</h3>{events.data?.slice(0, 8).map(e => <p key={e.id}><strong>{e.title}</strong> · {formatDateTime(e.starts_at)} · {e.reserved}/{e.capacity}</p>)}<Link to="/admin/events">{st('Continue')} →</Link></Card>}
-                <QuickStart canWrite={canWrite} canManageBookings={access.data?.canManageBookings === true || access.data?.canManageOwnBookings === true} hasMember={hasMember} model={model}/>
+                <QuickStart canWrite={canWrite} canManageBookings={access.data?.canManageBookings === true || access.data?.canManageOwnBookings === true} hasMember={hasMember} hasResources={hasResources} model={model}/>
             </div>
         </>;
     }
@@ -55,26 +59,32 @@ export function AdminOverview() {
         {access.error && <ErrorState error={access.error}/>}
         <div className="stats-grid">
             <Stat icon={CalendarDays} label={tr("Total bookings")} value={total} sub={tr("Based on available records")} color="mint" to="/admin/reservations"/>
-            <Stat icon={Clock3} label={tr("Upcoming pending bookings")} value={pendingBookings.data?.totalElements || 0} sub={tr("Awaiting confirmation")} color="blue" to="/admin/reservations"/>
+            <Stat icon={Clock3} label={tr("Upcoming confirmed bookings")} value={pendingBookings.data?.totalElements || 0} sub={tr("Confirmed, not started yet")} color="blue" to="/admin/reservations"/>
             {canWrite && <>
                 <Stat icon={MapPin} label={tr("Locations")} value={locs.data?.totalElements || 0} sub={tr("In organization")} color="sand" to="/admin/locations"/>
                 <Stat icon={UsersRound} label={tr("Team members")} value={team.data?.totalElements || 0} sub={tr("In organization")} color="lavender" to="/admin/team"/>
             </>}
         </div>
         <div className="overview-grid">
-            <Card><div className="card-heading"><div><span className="eyebrow">{tr("ACTIVITY")}</span><h2>{tr("Recent bookings")}</h2></div><Link to="/admin/reservations" className="text-link">{tr("View all ")}<ArrowRight size={15}/></Link></div>{bookings.isLoading ? <Loading /> : bookings.error ? <ErrorState error={bookings.error}/> : bookings.data?.items.length ? <div className="overview-bookings">{bookings.data.items.map(b => <div className="overview-booking" key={b.id}><div className="booking-avatar">{b.customer_name.charAt(0).toUpperCase()}</div><div className="overview-booking-name"><strong>{b.customer_name}</strong><small>#{b.id} · {formatDateTime(b.created_at)}</small></div><Badge tone={b.status === 'confirmed' ? 'green' : b.status === 'cancelled' ? 'red' : 'orange'}>{statusLabel(b.status)}</Badge><strong>{money(b.total_amount, b.currency)}</strong></div>)}</div> : <Empty title={tr("No bookings yet")} description={tr("New bookings will appear here.")}/>}</Card>
+            <Card><div className="card-heading"><div><span className="eyebrow">{tr("ACTIVITY")}</span><h2>{tr("Recent bookings")}</h2></div><Link to="/admin/reservations" className="text-link">{tr("View all ")}<ArrowRight size={15}/></Link></div>{bookings.isLoading ? <Loading /> : bookings.error ? <ErrorState error={bookings.error}/> : bookings.data?.items.length ? <div className="overview-bookings">{bookings.data.items.map(b => <button type="button" className="overview-booking overview-booking-button" key={b.id} onClick={() => setSelectedBookingId(b.id)} aria-label={`${tr("Booking details")}: ${b.customer_name}`}><div className="booking-avatar" aria-hidden="true">{nameInitials(b.customer_name)}</div><div className="overview-booking-name"><strong>{b.customer_name}</strong><small>{b.appointment_at && b.appointment_ends_at ? formatDateTimeRange(b.appointment_at, b.appointment_ends_at) : formatDateTime(b.created_at)}</small></div><Badge tone={statusTone(b.status)}>{statusLabel(b.status)}</Badge><strong>{money(b.total_amount, b.currency)}</strong><span className="overview-booking-icon"><Eye size={17}/></span></button>)}</div> : <Empty title={tr("No bookings yet")} description={tr("New bookings will appear here.")}/>}</Card>
             <div className="overview-side">
-                <QuickStart canWrite={canWrite} canManageBookings={access.data?.canManageBookings === true || access.data?.canManageOwnBookings === true} hasMember={hasMember} model={model}/>
-                <Card className="public-link-card"><div className="public-link-icon"><CalendarDays size={22}/></div><h3>{tr("Public booking page")}</h3><p>{tr("Share the link so customers can book themselves.")}</p>{org?.public_id ? <Link className="btn btn-secondary btn-full" to={`/reservations/${org.public_id}`} target="_blank">{tr("Open booking website ")}<ArrowRight size={16}/></Link> : <span className="muted small">{tr("Find the public UUID in organization settings.")}</span>}</Card>
+                <QuickStart canWrite={canWrite} canManageBookings={access.data?.canManageBookings === true || access.data?.canManageOwnBookings === true} hasMember={hasMember} hasResources={hasResources} model={model}/>
+                <Card className="public-link-card"><h3>{tr("Public booking page")}</h3><p>{tr("Share the link so customers can book themselves.")}</p>{org?.public_id ? <Link className="btn btn-secondary btn-full" to={`/reservations/${org.public_id}`} target="_blank">{tr("Open booking website ")}<ArrowRight size={16}/></Link> : <span className="muted small">{tr("Find the public UUID in organization settings.")}</span>}</Card>
             </div>
         </div>
+        {selectedBookingId !== null && <Modal wide className="booking-detail-modal" title={tr("Booking details")} onClose={() => setSelectedBookingId(null)}>
+            <ReservationDetail org={orgId} id={selectedBookingId}
+                canManage={access.data?.canManageBookings === true || access.data?.canManageOwnBookings === true}
+                onClose={() => setSelectedBookingId(null)}/>
+        </Modal>}
     </>;
 }
 
-function QuickStart({ canWrite, canManageBookings, hasMember, model }: {
+function QuickStart({ canWrite, canManageBookings, hasMember, hasResources, model }: {
     canWrite: boolean;
     canManageBookings: boolean;
     hasMember: boolean;
+    hasResources: boolean;
     model: string | null | undefined;
 }) {
     const actions = canWrite
@@ -93,10 +103,13 @@ function QuickStart({ canWrite, canManageBookings, hasMember, model }: {
             ...(canManageBookings && model !== 'EVENT'
                 ? [{ to: '/admin/reservations', icon: CalendarDays, title: tr('Manage bookings'), description: tr('Customer booking overview') }]
                 : []),
-            ...(hasMember
-                ? [{ to: '/admin/absence-requests', icon: Clock3, title: tr('Request time off'), description: tr('Submit time off or change working hours') }]
-                : [])
         ];
+    if (hasMember)
+        actions.push({ to: '/admin/absence-requests', icon: Clock3, title: tr('Request time off'), description: tr('Request time off or adjust working hours') });
+    if (canWrite && hasResources)
+        actions.push({ to: '/admin/resources', icon: Wrench, title: tr('Set up resources'), description: tr('Rooms and equipment for bookings') });
+    if (canWrite)
+        actions.push({ to: '/admin/booking-customers', icon: UsersRound, title: tr('Manage customers'), description: tr('Customer contacts and reservation history') });
 
     if (!actions.length) return null;
     return <Card><div className="card-heading"><div><span className="eyebrow">{tr("QUICK START")}</span><h2>{tr("Start here")}</h2></div><TrendingUp size={19}/></div><div className="quick-links">{actions.map(action => <Link to={action.to} key={action.to}><span><action.icon size={19}/></span><div><strong>{action.title}</strong><small>{action.description}</small></div><ArrowRight size={17}/></Link>)}</div></Card>;

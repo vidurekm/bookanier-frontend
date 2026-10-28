@@ -1,5 +1,4 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
-import { usePreferences } from '../lib/preferences';
 import { tr } from '../lib/translations';
 import { Button, Modal } from '../components/UI';
 
@@ -17,7 +16,6 @@ type ConfirmRequest = (message: string, options?: ConfirmOptions) => Promise<boo
 const ConfirmContext = createContext<ConfirmRequest | null>(null);
 
 export function ConfirmProvider({ children }: { children: ReactNode }) {
-  const { appearance } = usePreferences();
   const pending = useRef<Confirmation[]>([]);
   const [current, setCurrent] = useState<Confirmation | null>(null);
 
@@ -35,9 +33,11 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   return <>
     <ConfirmContext.Provider value={confirm}>{children}</ConfirmContext.Provider>
     {current && <Modal
+      themed
+      onTop
       title={current.title || tr('Confirm action')}
       onClose={() => finish(false)}
-      className={appearance === 'dark' ? 'confirm-modal-dark' : ''}
+      className="confirm-modal"
     >
       <p>{current.message}</p>
       <div className="form-actions">

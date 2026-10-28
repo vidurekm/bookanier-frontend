@@ -3,11 +3,13 @@ import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { ConfirmProvider } from './contexts/ConfirmContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { AuthProvider } from './contexts/AuthContext';
 import App from './App';
 import { PreferencesProvider } from './lib/preferences';
 import './styles.css';
 import { installFrontendErrorHandlers } from './lib/frontendLogger';
+import { installFormValidation } from './lib/formValidation';
 import { currentUrlLanguage, DEFAULT_LANGUAGE, localizedPath, urlLocale } from './lib/locale';
 import type { Language } from './lib/preferences';
 
@@ -39,12 +41,13 @@ async function selectInitialLocale():Promise<void> {
 }
 
 installFrontendErrorHandlers();
+installFormValidation();
 async function start() {
   await selectInitialLocale();
   const localeBasename = '/' + currentUrlLanguage();
   const client=new QueryClient({defaultOptions:{queries:{retry:1,staleTime:20_000,refetchOnWindowFocus:false}}});
   ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode><QueryClientProvider client={client}><BrowserRouter basename={localeBasename}><PreferencesProvider><ConfirmProvider><AuthProvider><App/></AuthProvider></ConfirmProvider></PreferencesProvider></BrowserRouter></QueryClientProvider></React.StrictMode>
+    <React.StrictMode><QueryClientProvider client={client}><BrowserRouter basename={localeBasename}><PreferencesProvider><ToastProvider><ConfirmProvider><AuthProvider><App/></AuthProvider></ConfirmProvider></ToastProvider></PreferencesProvider></BrowserRouter></QueryClientProvider></React.StrictMode>
   );
 }
 void start();

@@ -37,3 +37,15 @@ export function formattedDateTime(value?:string, format=currentDateFormat()):str
   const mm=String(date.getMinutes()).padStart(2,'0');
   return `${formattedDate(value,format)} ${hh}:${mm}`;
 }
+export function formattedDateTimeRange(start:string, end:string, format=currentDateFormat()):string {
+  const startDate=new Date(start);
+  const endDate=new Date(end);
+  const startText=formattedDateTime(start,format);
+  const endText=formattedDateTime(end,format);
+  if(Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return `${startText} – ${endText}`;
+  const sameDay=startDate.getFullYear()===endDate.getFullYear()
+    && startDate.getMonth()===endDate.getMonth()
+    && startDate.getDate()===endDate.getDate();
+  const endTime=`${String(endDate.getHours()).padStart(2,'0')}:${String(endDate.getMinutes()).padStart(2,'0')}`;
+  return `${startText} – ${sameDay ? endTime : endText}`;
+}

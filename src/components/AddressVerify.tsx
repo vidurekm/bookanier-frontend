@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { MapPin, Search, ExternalLink } from 'lucide-react';
 import { orgApi } from '../lib/api';
 import { safeErrorMessage } from '../lib/errors';
+import { formatGeocodedAddress } from '../lib/address';
 import { tr } from '../lib/translations';
 import { Button, Notice } from './UI';
 
-export interface GeoResult { address: string; latitude: number; longitude: number }
+export interface GeoResult { address: string; latitude: number; longitude: number; addressDetails?: Record<string, string> }
 export function mapUrl(latitude: number, longitude: number) {
   const lat = Number(latitude), lon = Number(longitude);
   return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}`;
@@ -31,7 +32,7 @@ export function AddressVerify({ org, address, latitude, longitude, onSelect }: {
     setBusy(true); setError(''); setResults([]);
     try {
       const matches = await orgApi<GeoResult[]>(org, `/geocoding/address?address=${encodeURIComponent(address.trim())}`);
-      setResults(matches);
+      setResults(matches.map(match => ({ ...match, address: formatGeocodedAddress(match.address, match.addressDetails) })));
       if (!matches.length) setError(tr('Address not found. Add a city and building number.'));
     } catch (e) { setError(safeErrorMessage(e)); }
     finally { setBusy(false); }

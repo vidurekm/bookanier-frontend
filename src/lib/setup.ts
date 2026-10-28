@@ -26,4 +26,4 @@ export const publicMode=async(uuid:string)=>{const x=await api<PublicBookingMode
 
 export const publicResources=(uuid:string,location:number,service:number)=>api<{id:number;name:string;capacity:number}[]>(`/public/organizations/${encodeURIComponent(uuid)}/resources?locationId=${location}&serviceId=${service}`,{},false);
 
-export const updateSetupOptions=(org:number,options:{customerSelectResource:boolean;showStaffChoice:boolean;eventCapacity:number;defaultPublicLanguage:string;defaultCurrency:string;dateFormat:string;maxAdvanceDays:number;trackResources:boolean})=>orgApi<BookingConfig>(org,'/setup/options',json('PUT',options));
+export const updateSetupOptions=(org:number,options:{customerSelectResource:boolean;showStaffChoice:boolean;eventCapacity:number;defaultPublicLanguage:string;defaultCurrency:string;dateFormat:string;maxAdvanceDays:number;trackResources:boolean;weekStartsOn:number})=>orgApi<BookingConfig>(org,'/setup/options',json('PUT',options));

@@ -1,0 +1,34 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const src = (relative) => fs.readFileSync(path.join(__dirname, '..', 'src', relative), 'utf8');
+const api = (relative) => fs.readFileSync(path.join(__dirname, '..', '..', 'bookanear-api', 'src', 'main', 'java', 'online', 'bookanear', 'api', relative), 'utf8');
+
+test('workspace help opens an authenticated, app-scoped AI assistant', () => {
+  const shell = src('components/AdminShell.tsx');
+  const chat = src('components/HelpChat.tsx');
+  const service = api(path.join('service', 'AiHelpService.java'));
+  const controller = api(path.join('controller', 'AiHelpController.java'));
+  const repository = api(path.join('service', 'AiHelpConversationRepository.java'));
+  const migration = fs.readFileSync(path.join(__dirname, '..', '..', 'bookanear-api', 'src', 'main', 'resources', 'db', 'migration', 'V22__ai_help_conversation_history.sql'), 'utf8');
+  const security = api(path.join('config', 'SecurityConfig.java'));
+  assert.match(shell, /className="sidebar-support" onClick=\{\(\) => setHelpOpen\(true\)\}/);
+  assert.match(shell, /<HelpChat onClose=/);
+  assert.match(chat, /role="region"/);
+  assert.doesNotMatch(chat, /aria-modal|help-chat-backdrop/);
+  assert.match(chat, /\/help\/chat/);
+  assert.match(chat, /\/help\/history/);
+  assert.match(chat, /Delete chat history/);
+  assert.match(chat, /method: 'DELETE'/);
+  assert.match(chat, /Your conversation is saved to your account/);
+  assert.match(service, /conversations\.saveExchange/);
+  assert.match(service, /Only answer questions about Bookanear features and workflows/);
+  assert.match(service, /Do not claim to access the user's account, organization, bookings, settings, or live data/);
+  assert.match(security, /requestMatchers\("\/api\/v1\/help\/\*\*"\)\.authenticated\(\)/);
+  assert.match(controller, /@GetMapping\("\/history"\)/);
+  assert.match(controller, /@DeleteMapping\("\/history"\)/);
+  assert.match(controller, /security\.authenticatedUserId\(authentication\)/);
+  assert.match(repository, /WHERE user_id = \?/);
+  assert.match(migration, /user_id bigint NOT NULL REFERENCES users\(id\) ON DELETE CASCADE/);
+});

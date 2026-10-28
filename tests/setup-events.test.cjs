@@ -37,6 +37,13 @@ test('dark table row hover keeps readable contrast across color themes',()=>{
  assert.match(css,/\.data-table tbody tr:hover\{background:#fbfdfc\}/);
  assert.match(css,/\.admin-layout\[data-appearance="dark"\] \.data-table tbody tr:hover\{background:#203447\}/);
 });
+test('dark combobox highlights follow the selected color theme',()=>{
+ const css=read('src/styles.css');
+ const rule=css.match(/\.admin-layout\[data-appearance="dark"\] \.combo-option:hover,\.admin-layout\[data-appearance="dark"\] \.combo-option\.active\{([^}]+)\}/);
+ assert.ok(rule);
+ assert.match(rule[1],/background:color-mix\(in srgb,var\(--accent\) 25%,#1c2c3e\)/);
+ assert.match(rule[1],/color:color-mix\(in srgb,var\(--accent\) 30%,#fff\)/);
+});
 test('team table reserves consistent slots for optional row actions',()=>{
  const css=read('src/styles.css');
  const team=read('src/pages/AdminTeam.tsx');

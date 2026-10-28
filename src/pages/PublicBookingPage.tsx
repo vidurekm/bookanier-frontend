@@ -12,8 +12,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { ArrowLeft, ArrowRight, CalendarDays, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock3, MapPin, Minus, Plus, ShieldCheck, UserRound, UsersRound } from 'lucide-react';
 import { createLegacy, createUniversal, publicCatalog, publicImages, publicSlots, publicUuidFromManageUrl } from '../lib/api';
 import type { PublicSlot, BookingResult } from '../lib/types';
-import { addDays, dateWithZone, formatDate, money, today } from '../lib/utils';
-import { Button, Card, Empty, ErrorState, Field, Input, Loading, Notice } from '../components/UI';
+import { addDays, dateWithZone, formatDate, money, sortByName, today } from '../lib/utils';
+import { Button, Card, Empty, ErrorState, Field, Input, Loading, Notice, Select } from '../components/UI';
 import { mapUrl } from '../components/AddressVerify';
 function PublicPhoto({ org, kind, id }: {
     org: number;
@@ -59,13 +59,14 @@ export function PublicBookingPage() {
     const maxBookingDate = addDays(today(), Number(mode?.settings?.maxAdvanceDays ?? 180));
     const nonStaffRequirements=service?.requirements.filter(r=>r.category!=='staff')??[];
     const needsParty = !!service?.requirements.some(r => r.category === 'space');
-    const needsQuantity = nonStaffRequirements.length === 1 && nonStaffRequirements[0].category === 'equipment';
+    const needsQuantity = mode?.booking_model !== 'APPOINTMENT' && nonStaffRequirements.length === 1 && nonStaffRequirements[0].category === 'equipment';
     const needsStaff=!!service?.requirements.some(r=>r.category==='staff');
     const isLegacy = service?.requirements.length === 0;
     const unsupportedCustomLegacy = !!isLegacy && service?.duration_mode === 'CUSTOM';
-    const canPickResource=service?.customer_can_choose_resource===true && nonStaffRequirements.length===1 && nonStaffRequirements[0].quantity===1;
+    const canPickResource=mode?.settings.trackResources===true && service?.customer_can_choose_resource===true && nonStaffRequirements.length===1 && nonStaffRequirements[0].quantity===1;
     const {data:availableResources}=useQuery({queryKey:['public-resources',publicId,locationId,serviceId],queryFn:()=>publicResources(publicId,locationId!,serviceId!),enabled:!!canPickResource&&!!locationId&&!!serviceId});
-    const staff = catalog?.members.filter(m => m.location_id === locationId && m.service_id === serviceId).filter((m, i, all) => all.findIndex(x => x.id === m.id) === i) || [];
+    const staff = sortByName(catalog?.members.filter(m => m.location_id === locationId && m.service_id === serviceId).filter((m, i, all) => all.findIndex(x => x.id === m.id) === i) || [], member => member.display_name);
+    const sortedAvailableResources = sortByName(availableResources || [], resource => resource.name);
     const requiredStaffCount=service?.required_staff_count??1;
     const { data: slots, isLoading: slotsLoading, error: slotsError } = useQuery({ queryKey: ['public-slots', publicId, locationId, serviceId, date, needsParty ? partySize : undefined, needsQuantity ? quantity : undefined], queryFn: () => publicSlots(publicId, locationId!, serviceId!, date, needsParty ? partySize : undefined, needsQuantity ? quantity : undefined), enabled: !!locationId && !!serviceId && step >= 2, retry: false });
     useEffect(()=>{if(catalog?.locations.length===1 && !locationId){setLocationId(catalog.locations[0].id);setStep(x=>x===0?1:x);}},[catalog,locationId]);
@@ -112,7 +113,7 @@ export function PublicBookingPage() {
           {needsQuantity && <Card className="capacity-card"><div><strong>{tr("Quantity")}</strong><p>{tr("How many items do you need?")}</p></div><div className="counter"><button onClick={() => setQuantity(v => Math.max(nonStaffRequirements[0]?.quantity || 1, v - 1))}><Minus size={16}/></button><strong>{quantity}</strong><button onClick={() => setQuantity(v => Math.min(100, v + 1))}><Plus size={16}/></button></div></Card>}
           <div className="slot-section"><h3>{tr("Available start times")}</h3>{slotsLoading ? <Loading label={tr("Finding available times…")}/> : slotsError ? <ErrorState error={slotsError}/> : !slots?.slots.length ? <Empty title={tr("No availability on this day")} description={tr("Try another date or location.")}/> : <div className="slot-grid">{slots.slots.map(s => <button key={s.startsAt} onClick={() => { setSlot(s); setMemberId(null); setPreferredMemberIds([]); }} className={`slot-button ${slot?.startsAt === s.startsAt ? 'selected' : ''}`}>{s.time.slice(0, 5)}</button>)}</div>}</div>
           {unsupportedCustomLegacy && <Notice message={tr("For variable-duration services, resource requirements must be configured in the admin area.")} kind="info"/>}
-          {canPickResource && !!availableResources?.length && <div className="member-picker"><h3>{st('Customer may select a specific resource')}</h3><select className="input" value={preferredResourceId??''} onChange={e=>setPreferredResourceId(e.target.value?Number(e.target.value):null)}><option value="">{tr('Anyone available')}</option>{availableResources.map(r=><option key={r.id} value={r.id}>{r.name} ({r.capacity})</option>)}</select></div>}
+          {canPickResource && !!sortedAvailableResources.length && <div className="member-picker"><h3>{st('Customer may select a specific resource')}</h3><Select value={preferredResourceId??''} onChange={e=>setPreferredResourceId(e.target.value?Number(e.target.value):null)}><option value="">{tr('Anyone available')}</option>{sortedAvailableResources.map(r=><option key={r.id} value={r.id}>{r.name} ({r.capacity})</option>)}</Select></div>}
           {(isLegacy||needsStaff) && slot && service?.customer_can_choose_staff===true && <div className="member-picker"><h3>{requiredStaffCount>1?translateWith("Choose {count} staff members",{count:requiredStaffCount}):tr("Choose a staff member")}</h3><div className="member-options">{staff.filter(m => slot.memberIds.some(id => Number(id) === m.id)).map(m => {const selected=preferredMemberIds.includes(m.id);return <button className={selected ? 'selected' : ''} key={m.id} disabled={!selected&&preferredMemberIds.length>=requiredStaffCount} onClick={() => {const next=selected?preferredMemberIds.filter(id=>id!==m.id):[...preferredMemberIds,m.id];setPreferredMemberIds(next);setMemberId(next[0]??null);}}><UserRound size={17}/>{m.display_name}{selected && <Check size={16}/>}</button>})}</div></div>}
           {service?.duration_mode === 'CUSTOM' && slot && <Card className="return-card"><h3>{tr("Return date and time")}</h3><p className="muted">{tr("For rentals, select the end of the rental period. Availability is checked when you submit.")}</p><div className="form-grid"><Field label={tr("Return date")}><Input type="date" min={date} value={returnDate < date ? date : returnDate} onChange={e => setReturnDate(e.target.value)}/></Field><Field label={tr("Return time")}><Input type="time" value={returnTime} onChange={e => setReturnTime(e.target.value)}/></Field></div></Card>}
           {slots?.slots.length ? <p className="muted small"><ShieldCheck size={14}/>{tr("Availability will be checked again on confirmation. The slot may be taken in the meantime.")}</p> : null}

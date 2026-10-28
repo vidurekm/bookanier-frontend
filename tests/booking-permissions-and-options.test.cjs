@@ -8,12 +8,17 @@ test('worker and resource choices are configured per service', () => {
   const wizard=src('pages/SetupWizard.tsx');
   const admin=src('pages/AdminServices.tsx');
   const booking=src('pages/PublicBookingPage.tsx');
+  const teamBooking=src('components/BookingManagement.tsx');
   assert.match(wizard, /customerCanChooseStaff/);
   assert.match(wizard, /customerCanChooseResource/);
   assert.match(wizard, /requiredStaffCount/);
   assert.match(admin, /booking-options/);
   assert.match(booking, /service\?\.customer_can_choose_staff===true/);
   assert.match(booking, /preferredMemberIds/);
+  assert.match(booking, /sortByName\(catalog\?\.members/);
+  assert.match(booking, /sortedAvailableResources\.map/);
+  assert.match(teamBooking, /sortByName\(workers\.filter/);
+  assert.match(teamBooking, /sortByName\(\(resourceOptions\.data\|\|\[\]\)\.filter/);
   assert.doesNotMatch(src('pages/AdminSettings.tsx'), /Customers can choose a specific staff member/);
   assert.doesNotMatch(src('pages/AdminSettings.tsx'), /Customers can choose specific equipment or a room/);
   assert.match(src('pages/AdminSettings.tsx'), /defaultPublicLanguage/);
@@ -22,6 +27,13 @@ test('worker and resource choices are configured per service', () => {
   assert.match(src('lib/bookingOptions.ts'), /CZK/);
   assert.match(src('lib/bookingOptions.ts'), /PLN/);
   assert.match(src('lib/bookingOptions.ts'), /EUR/);
+});
+
+test('appointment bookings do not ask for equipment quantity', () => {
+  const booking = src('pages/PublicBookingPage.tsx');
+  const teamBooking = src('components/BookingManagement.tsx');
+  assert.match(booking, /mode\?\.booking_model !== 'APPOINTMENT' && nonStaffRequirements\.length === 1 && nonStaffRequirements\[0\]\.category === 'equipment'/);
+  assert.match(teamBooking, /setup\.data\?\.booking_model!=='APPOINTMENT'&&nonStaffRequirements\.length===1&&nonStaffRequirements\[0\]\.category==='equipment'/);
 });
 
 test('organization settings allow changing optional resource tracking', () => {
@@ -61,8 +73,30 @@ test('member privilege editor and absence workflow use dedicated permissions', (
 test('team can manage bookings without technical internal-API messages on UI', () => {
   assert.match(src('pages/AdminReservations.tsx'), /CreateTeamBooking/);
   assert.match(src('pages/AdminReservations.tsx'), /canManageOwnBookings/);
-  assert.match(src('pages/AdminReservations.tsx'), /BookingStatusActions/);
+  assert.match(src('components/ReservationDetail.tsx'), /BookingStatusActions/);
   assert.doesNotMatch(src('pages/AdminReservations.tsx'), /Aktuální API neposkytuje/);
+});
+test('booking detail actions stay in the requested order and cancellation is red', () => {
+  const actions = src('components/BookingManagement.tsx');
+  const complete = actions.indexOf("status==='confirmed'?['completed','no_show','cancelled']");
+  const reschedule = actions.indexOf("tr('Reschedule booking')");
+  const cancel = actions.indexOf("allowed.filter(next=>next==='cancelled')");
+  assert.ok(complete >= 0 && complete < reschedule && reschedule < cancel);
+  assert.match(actions, /className="booking-detail-actions"/);
+  assert.match(actions, /createPortal\(<Modal className="booking-reschedule-modal" title=\{tr\('Reschedule booking'\)\}/);
+  assert.match(actions, /status==='completed'\?\['confirmed','no_show'\]:status==='no_show'\?\['confirmed','completed'\]/);
+  assert.match(actions, /tr\(next==='confirmed'&&status!=='pending'\?'Reopen booking':labels\[next\]\)/);
+  assert.match(src('pages/AdminReservations.tsx'), /Modal wide className="booking-detail-modal" title=\{tr\("Booking details"\)\}/);
+  assert.match(src('styles.css'), /\.booking-detail-modal\{width:min\(1040px,100%\)\}/);
+  assert.match(src('styles.css'), /\.modal-body \.form-actions,\.modal-body \.booking-detail-actions\{justify-content:flex-end;border-top-color:#edf1ef\}/);
+  assert.match(actions, /<div className="form-actions"><Button loading=\{create\.isPending\}/);
+  assert.match(src('styles.css'), /\.modal-body \.booking-detail-actions\{border-top:1px solid #edf1ef;padding-top:15px;margin-top:5px\}/);
+  assert.match(src('components/ReservationDetail.tsx'), /<h3 className="booking-items-title">\{tr\("Booking items"\)\}<\/h3>/);
+  assert.match(src('styles.css'), /\.booking-items-title\{font-size:15px;margin:8px 0 2px\}/);
+  assert.match(src('styles.css'), /\.detail-summary \.badge\{align-self:flex-start\}/);
+  assert.match(src('styles.css'), /\.booking-detail-actions\{[^}]*flex-wrap:wrap;overflow-x:visible/);
+  const detail = src('components/ReservationDetail.tsx');
+  assert.match(detail, /data\?\.resourcesEnabled && <div><small>\{tr\("Resources"\)\}/);
 });
 test('sidebar uses reservation customers instead of the legacy customer directory', () => {
   const shell = src('components/AdminShell.tsx');
@@ -74,9 +108,15 @@ test('reservation list filters and displays assigned workers and resources', () 
   const service = fs.readFileSync(path.join(__dirname, '..', '..', 'bookanear-api', 'src', 'main', 'java', 'online', 'bookanear', 'api', 'service', 'BackofficeService.java'), 'utf8');
   assert.match(page, /Customer name or email/);
   assert.match(page, /memberId: memberId \|\| undefined, resourceId: resourceId \|\| undefined/);
+  assert.match(page, /queryKey: \['reservation-filter-members', orgId, selectedLocation\]/);
+  assert.match(page, /locationId: selectedLocation \|\| undefined/);
+  assert.match(page, /filterMembers\.map\(member/);
+  assert.match(page, /filterResources\.map\(resource/);
+  assert.match(page, /sortByName\(members\.data \|\| \[\], member => member\.display_name\)/);
+  assert.match(page, /sortByName\(resourceOptions\.data \|\| \[\], resource => resource\.name\)/);
   assert.match(page, /aria-label={tr\("Filter worker"\)}/);
-  assert.match(page, /trackResources && <Select aria-label={tr\("Filter resource"\)}/);
-  assert.match(page, /booking\.appointment_at \? <>\{formatDateTime\(booking\.appointment_at\)/);
+  assert.match(page, /trackResources && \(\s*<label className="filter-field"><span>\{tr\("Resource"\)\}/s);
+  assert.match(page, /booking\.appointment_at \? <>\{booking\.appointment_ends_at \? formatDateTimeRange\(booking\.appointment_at, booking\.appointment_ends_at\)/);
   assert.match(page, /trackResources && <td>{booking\.resource_name \|\| '—'}<\/td>/);
   assert.match(service, /unnest\(CAST\(:q AS text\[\]\)\) AS search_token/);
   assert.match(service, /r\.customer_name ILIKE '%' \|\| search_token\.value/);
@@ -84,6 +124,12 @@ test('reservation list filters and displays assigned workers and resources', () 
   assert.match(service, /AS appointment_at/);
   assert.match(service, /AS member_name/);
   assert.match(service, /AS resource_name/);
+  assert.match(service, /CAST\(:locationId AS bigint\) IS NULL OR EXISTS \(SELECT 1 FROM member_locations ml WHERE ml\.organization_id=m\.organization_id AND ml\.member_id=m\.id AND ml\.location_id=:locationId\)/);
+  assert.match(page, /const \[sortField, setSortField\] = useState\('appointmentAt'\)/);
+  assert.match(page, /const \[sortDirection, setSortDirection\] = useState<'asc' \| 'desc'>\('desc'\)/);
+  assert.match(page, /sort: `\$\{sortField\},\$\{sortDirection\}`/);
+  assert.match(page, /sortHeader\('appointmentAt', tr\("Date and time"\)\)/);
+  assert.match(service, /"appointmentAt", "appointment_at"/);
 });
 test('reservation calendar supports day, week, and month views with visible customer names', () => {
   const page = src('pages/AdminReservations.tsx');
@@ -100,23 +146,60 @@ test('reservation calendar supports day, week, and month views with visible cust
   assert.match(calendarApi, /AS resource_name/);
   assert.match(page, /calendar-event-worker/);
   assert.match(page, /calendar-event-resource/);
+  assert.match(page, /calendar-timed-scroll/);
+  assert.match(page, /calendar-time-axis/);
+  assert.match(page, /calendar-hour-line/);
+  assert.match(page, /laneEnds\.findIndex\(end => end <= slot\.startMinute\)/);
+  assert.match(page, /left: `calc\(\$\{left\}% \+ 2px\)`/);
   assert.match(page, /showResources=\{trackResources\}/);
   assert.match(page, /Filter reservations/);
   assert.match(page, /calendarFiltersOpen/);
   assert.match(page, /calendar-event-status/);
   assert.match(calendarApi, /CAST\(:status AS text\).*r\.status=:status/s);
+  assert.match(calendarApi, /CAST\(:showCancelled AS boolean\) OR r\.status<>'cancelled'/);
+  assert.match(page, /calendarStatus/);
+  assert.match(page, /checked=\{showCancelled\}/);
+  assert.match(page, /Show cancelled bookings/);
+  assert.doesNotMatch(page.match(/view === 'calendar' && calendarFiltersOpen && <div className="calendar-filter-panel">([\s\S]*?)<\/div>\}/)?.[1] || '', /value="cancelled"/);
+  assert.match(page, /calendar-event-cancelled/);
   assert.match(calendarApi, /CAST\(:member AS bigint\).*ri\.member_id=:member/s);
   assert.match(calendarApi, /CAST\(:resource AS bigint\).*filtered_rr\.resource_id=:resource/s);
 });
+test('reservation calendar and list refresh manually and in the background on a configurable interval', () => {
+  const page = src('pages/AdminReservations.tsx');
+  const env = fs.readFileSync(path.join(__dirname, '..', '.env.example'), 'utf8');
+  assert.match(page, /VITE_RESERVATIONS_REFRESH_INTERVAL_MS/);
+  assert.match(page, /: 10_000/);
+  assert.equal((page.match(/refetchInterval: reservationRefreshIntervalMs/g) || []).length, 2);
+  assert.match(page, /calendar\.refetch\(\)/);
+  assert.match(page, /bookings\.refetch\(\)/);
+  assert.match(env, /VITE_RESERVATIONS_REFRESH_INTERVAL_MS=10000/);
+});
+test('calendar location filter stays on the first row and optional filters are hidden by default', () => {
+  const page = src('pages/AdminReservations.tsx');
+  const styles = src('styles.css');
+  const calendarFilters = page.match(/view === 'calendar' && calendarFiltersOpen && <div className="calendar-filter-panel">([\s\S]*?)<\/div>\}/)?.[1] || '';
+  assert.ok(!calendarFilters.includes('Filter location'));
+  assert.match(page, /const \[calendarFiltersOpen, setCalendarFiltersOpen\] = useState\(false\)/);
+  assert.match(page, /activeLocations\.length > 1 && <label className="filter-field"><span>\{tr\("Location"\)\}.*calendar-location-filter/s);
+  assert.match(page, /locationFilter=\{activeLocations\.length > 1 && <label className="filter-field">/);
+  assert.match(page, /setLocation\(Number\(e\.target\.value\)\); setMemberId\(null\); setResourceId\(null\);/);
+  assert.match(page, /view === 'list' && listFiltersOpen && <div className="calendar-filter-panel list-filter-panel">/);
+  assert.match(styles, /\.calendar-filter-panel\{display:flex;justify-content:flex-start/);
+  assert.match(styles, /\.calendar-toolbar \.calendar-location-filter\{width:min\(180px,100%\);min-width:140px/);
+  assert.match(styles, /\.calendar-filter-panel \.select\{width:min\(180px,100%\);min-width:140px/);
+});
 test('reservation table and detail show appointment date and readable service names', () => {
   const page = src('pages/AdminReservations.tsx');
+  const detail = src('components/ReservationDetail.tsx');
   const service = fs.readFileSync(path.join(__dirname, '..', '..', 'bookanear-api', 'src', 'main', 'java', 'online', 'bookanear', 'api', 'service', 'BackofficeService.java'), 'utf8');
   const pager = src('components/UI.tsx');
-  assert.match(page, /<th>\{tr\("Date and time"\)\}<\/th><th>\{tr\("Customer"\)\}/);
+  assert.match(page, /sortHeader\('appointmentAt', tr\("Date and time"\)\)/);
+  assert.match(page, /sortHeader\('customerName', tr\("Customer"\)\)/);
   assert.doesNotMatch(page, /<strong>#{booking\.id}<\/strong>/);
   assert.match(page, /title=\{tr\("Booking details"\)\}/);
-  assert.match(page, /String\(item\.service_name \|\| '—'\)/);
-  assert.match(page, /tr\("Created"\).*r\.created_at/s);
+  assert.match(detail, /String\(item\.service_name \|\| '—'\)/);
+  assert.match(detail, /tr\("Created"\).*reservation\.created_at/s);
   assert.match(page, /booking\.appointment_ends_at/);
   assert.match(page, /event\.ends_at/);
   assert.match(service, /MAX\(ri\.ends_at\)[\s\S]*AS appointment_ends_at/);
@@ -150,6 +233,26 @@ test('reservation statistics report completed bookings, capacity usage, and reve
   assert.match(styles, /\.statistics-card\{[^}]*background:#192332[^}]*border:1px solid #344252[^}]*border-radius:20px/);
   assert.match(styles, /\.statistics-card strong\{[^}]*color:#f1f5f9/);
   assert.match(styles, /\.statistics-toolbar \.select\{height:40px;min-height:40px/);
+  assert.match(styles, /\.statistics-toolbar\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+});
+test('reservation list has single-row day, month, and year period pickers', () => {
+  const page = src('pages/AdminReservations.tsx');
+  const styles = src('styles.css');
+  assert.match(page, /useState<'all' \| 'day' \| 'month' \| 'year'>\('all'\)/);
+  assert.match(page, /listPeriod === 'month' \? listMonthStart/);
+  assert.match(page, /listPeriod === 'year' \? listYearStart/);
+  assert.match(page, /aria-label=\{tr\("Previous period"\)\} onClick=\{\(\) => shiftListPeriod\(-1\)\}/);
+  assert.match(page, /<PeriodPicker mode="day" label=\{tr\("Select date"\)\}/);
+  assert.match(page, /<PeriodPicker mode="month" label=\{tr\("Select month"\)\}/);
+  assert.match(page, /<PeriodPicker mode="year" label=\{tr\("Select year"\)\}/);
+  assert.match(src('components/PeriodPicker.tsx'), /type="number"/);
+  assert.match(page, /selectedListYear >= currentYear \+ 1/);
+  assert.match(page, /nextYear > currentYear \+ 1/);
+  assert.doesNotMatch(page, /Custom period.*aria-label|list-custom-range/);
+  assert.match(page, /aria-label=\{tr\("Today"\)\} onClick=\{\(\) => \{ setListStart\(today\(\)\); setListPeriod\('day'\)/);
+  assert.match(page, /view === 'list' && listFiltersOpen && <div className="calendar-filter-panel list-filter-panel">/);
+  assert.match(styles, /\.table-toolbar\.list-toolbar\{flex-direction:row;flex-wrap:nowrap/);
+  assert.match(styles, /\.table-toolbar\.list-toolbar \.calendar-nav\{flex:0 1 auto;flex-wrap:nowrap/);
 });
 test('overview only shows management tiles and quick actions the current user can access', () => {
   const overview = src('pages/AdminOverview.tsx');
@@ -160,7 +263,23 @@ test('overview only shows management tiles and quick actions the current user ca
   assert.match(overview, /pendingBookings\.data\?\.totalElements/);
   assert.doesNotMatch(overview, /Confirmed \(on page\)/);
   assert.match(overview, /canManageBookings && model !== 'EVENT'/);
-  assert.match(overview, /hasMember\s*\?[\s\S]*'\/admin\/absence-requests'/);
+  assert.match(overview, /if \(hasMember\)[\s\S]*actions\.push\(\{ to: '\/admin\/absence-requests'/);
+  assert.match(overview, /actions\.push\(\{ to: '\/admin\/absence-requests'/);
+  assert.match(overview, /actions\.push\(\{ to: '\/admin\/resources'/);
+  assert.match(overview, /canWrite && hasResources/);
+  assert.match(overview, /actions\.push\(\{ to: '\/admin\/booking-customers'/);
+  assert.match(overview, /settings\.trackResources === true/);
+  assert.match(overview, /title: tr\('Set up resources'\), description: tr\('Rooms and equipment for bookings'\)/);
+  assert.match(overview, /title: tr\('Manage customers'\), description: tr\('Customer contacts and reservation history'\)/);
+  assert.match(overview, /title: tr\('Request time off'\), description: tr\('Request time off or adjust working hours'\)/);
+});
+test('overview recent bookings open the editable booking detail dialog', () => {
+  const overview = src('pages/AdminOverview.tsx');
+  assert.match(overview, /className="overview-booking overview-booking-button"[^>]*onClick=\{\(\) => setSelectedBookingId\(b\.id\)\}/);
+  assert.match(overview, /<ReservationDetail org=\{orgId\} id=\{selectedBookingId\}/);
+  assert.match(overview, /canManage=\{access\.data\?\.canManageBookings === true \|\| access\.data\?\.canManageOwnBookings === true\}/);
+  assert.match(overview, /selectedBookingId !== null && <Modal wide className="booking-detail-modal"/);
+  assert.match(src('components/ReservationDetail.tsx'), /qc\.invalidateQueries\(\{ queryKey: \['reservations', org\], refetchType: 'active' \}\)/);
 });
 test('offices are included in the resource booking category description', () => {
   const wizard=src('pages/SetupWizard.tsx');

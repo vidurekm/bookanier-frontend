@@ -1,4 +1,4 @@
-import type { Page, Organization, Location, Service, Member, Customer, Reservation, Resource, ResourceType, PublicCatalog, PublicSlots, BookingResult, Version, ImageInfo, Dict } from './types';
+import type { Page, Organization, Location, Service, Member, Customer, Reservation, Resource, ResourceType, PublicCatalog, PublicSlots, RescheduleAvailability, BookingResult, Version, ImageInfo, Dict } from './types';
 
 import { ApiError, knownErrorCode, statusErrorCode } from './errors';
 import { reportFrontendError } from './frontendLogger';
@@ -54,11 +54,33 @@ export const services = (org:number) => list<Service>(org,'/services');
 export const members = (org:number) => list<Member>(org,'/members');
 export const customers = (org:number,params?:Record<string,string|number|undefined>) => list<Customer>(org,'/customers',params);
 export const reservations = (org:number,params?:Record<string,string|number|boolean|undefined>) => list<Reservation>(org,'/reservations',params);
+export const rescheduleAvailability = (org:number,id:number,date:string,choices?:{preferredMemberIds?:number[];preferredResourceId?:number}) => {
+  const params = new URLSearchParams(queryString({date,preferredResourceId:choices?.preferredResourceId}).slice(1));
+  choices?.preferredMemberIds?.forEach(m=>params.append('preferredMemberIds',String(m)));
+  return orgApi<RescheduleAvailability>(org,`/reservations/${id}/availability?${params.toString()}`);
+};
+export const rescheduleOptions = (org:number,id:number) =>
+  orgApi<{staffCount:number;members:{id:number;display_name:string}[];currentMemberIds:number[];resources:{id:number;name:string}[];currentResourceId:number|null}>(org,`/reservations/${id}/reschedule-options`);
 export const resourceTypes = (org:number) => orgApi<ResourceType[]>(org,'/resource-types');
 export const resources = (org:number,loc:number) => orgApi<Resource[]>(org,`/locations/${loc}/resources`);
 export const versions = (org:number,id:number) => orgApi<Version[]>(org,`/services/${id}/versions`);
 export const publicCatalog = (uuid:string,date:string) => api<PublicCatalog>(`/public/organizations/${encodeURIComponent(uuid)}/catalog${queryString({date})}`,{},false);
-export const publicSlots = (uuid:string,loc:number,svc:number,date:string,partySize?:number,quantity?:number) => api<PublicSlots>(`/public/organizations/${encodeURIComponent(uuid)}/slots${queryString({locationId:loc,serviceId:svc,date,partySize,quantity})}`,{},false);
+export const publicSlots = (uuid:string,loc:number,svc:number,date:string,partySize?:number,quantity?:number,
+  choices?:{preferredMemberIds?:number[];preferredResourceId?:number}) => {
+  const params = new URLSearchParams(queryString({locationId:loc,serviceId:svc,date,partySize,quantity}).slice(1));
+  choices?.preferredMemberIds?.forEach(id=>params.append('preferredMemberIds',String(id)));
+  if(choices?.preferredResourceId)params.set('preferredResourceId',String(choices.preferredResourceId));
+  return api<PublicSlots>(`/public/organizations/${encodeURIComponent(uuid)}/slots?${params.toString()}`,{},false);
+};
+export const backofficeSlots = (org:number,loc:number,svc:number,date:string,partySize?:number,quantity?:number,
+  choices?:{preferredMemberIds?:number[];preferredResourceId?:number}) => {
+  const params = new URLSearchParams(queryString({locationId:loc,serviceId:svc,date,partySize,quantity}).slice(1));
+  choices?.preferredMemberIds?.forEach(id=>params.append('preferredMemberIds',String(id)));
+  if(choices?.preferredResourceId)params.set('preferredResourceId',String(choices.preferredResourceId));
+  return orgApi<PublicSlots>(org,`/reservations/slots?${params.toString()}`);
+};
+export const backofficeUnavailableDays = (org:number,loc:number,svc:number,from:string,to:string,partySize?:number,quantity?:number) =>
+  orgApi<string[]>(org,`/reservations/slots/unavailable-days${queryString({locationId:loc,serviceId:svc,from,to,partySize,quantity})}`);
 export const createUniversal = (body:Dict) => api<BookingResult>('/bookings/universal',json('POST',body),false);
 export const createLegacy = (body:Dict) => api<BookingResult>('/bookings',json('POST',body),false);
 export const publicReservation = (token:string) => api<{id:number;status:string;customerName:string;totalAmount:number;currency:string}>(`/public/reservations/${encodeURIComponent(token)}`,{},false);

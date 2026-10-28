@@ -82,6 +82,15 @@ test('resources can be deleted when unused while reservation and team resources 
   assert.match(backoffice, /DELETE FROM resource_images WHERE organization_id=:org AND resource_id=:id/);
 });
 
+test('resource photos are managed from the edit dialog tabs, not table actions',()=>{
+  const page = read(path.join(root,'src/pages/AdminResources.tsx'));
+  assert.match(page, /editTab === 'photos'[\s\S]*tr\('Photos'\)/);
+  assert.match(page, /kind="resource" target=\{edit\.id\}/);
+  assert.match(page, /kind="resource-type" target=\{editType\.id\}/);
+  assert.doesNotMatch(page, /title=\{tr\("Photos"\)\}/);
+  assert.doesNotMatch(page, /setPhotos/);
+});
+
 test('staff resource types and staff resources stay hidden from resource administration',()=>{
   const page = read(path.join(root,'src/pages/AdminResources.tsx'));
   const backoffice = read(path.join(api,'src/main/java/online/bookanear/api/service/BackofficeService.java'));

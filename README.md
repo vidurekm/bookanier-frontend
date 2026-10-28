@@ -22,6 +22,18 @@ Lokální nastavení Vite je v ignorovaném souboru `.env.local` (`VITE_API_PROX
 
 ## Backendová integrace
 
+Formuláře zachovávají HTML validační pravidla, ale místo systémových bublin
+prohlížeče zobrazují lokalizovanou chybu pod polem. Společná obsluha v
+`src/lib/formValidation.ts` pokrývá také nativní pole a modální formuláře,
+označí neplatné pole pro čtečky a přesune fokus na první chybu.
+
+Ověření adresy pobočky používá strukturovaná data Nominatimu a lokální šablony
+`@fragaria/address-formatter` (OpenCage) podle země nalezeného místa. Po výběru
+výsledku se uloží adresa v místním poštovním formátu na jednom řádku a souřadnice,
+nikoli dlouhý administrativní popis `display_name`. Platí pro průvodce i správu
+poboček; adresy se neposílají další formátovací službě. Formátování nepotvrzuje
+poštovní doručitelnost a závisí na úplnosti dat OpenStreetMap.
+
 Všechny potřebné backendové doplňky (veřejný katalog, kalendář, přiřazení poboček a strojové kódy chyb) jsou již součástí sousedního projektu `bookanear-api/`. Není potřeba aplikovat další ZIPy.
 
 Nové endpointy:
@@ -47,9 +59,16 @@ Backend používá existující tabulky z V1–V5 a zachovává přístupové ko
 
 ## Co je hotové
 
+Komponenty administrace a jejich dialogy sdileji v `src/styles.css` barevne tokeny
+`--surface`, `--surface-control`, `--text`, `--text-muted` a `--accent-text`.
+Dekorativni zvyrazneni pouziva zvoleny motiv i v tmavem vzhledu; chyby, uspechy
+a stavy rezervaci si zachovavaji vyznamove barvy. Kontrast textu a zvyrazneni
+pro vsech sest motivu overuje `node --test tests/component-themes.test.cjs`.
+
 - Úvodní prezentační stránka.
 - Přihlášení přes JWT, registrace organizace, ověření e-mailu.
 - Administrace: přehled, kalendář podle termínů, rezervace s detailem, pobočky, otevírací doba, služby, cenové verze, resource requirements, zaměstnanci, přiřazení poboček/služeb, směny, typy zdrojů, zdroje, zákazníci, nastavení organizace.
+- V dialozích je uložení dostupné až po změně hodnot. Návrat k původním hodnotám tlačítko opět deaktivuje; přepínání záložek se za změnu nepovažuje.
 - Nahrávání a přiřazování obrázků (organizace, pobočka, služba, zaměstnanec, zdroj, typ zdroje) přes existující Media API a Cloudflare R2.
 - Veřejný rezervační průvodce: pobočka → služba → datum/čas → kontakt → potvrzení; kapacita osob pro prostory, počet kusů pro vybavení, délka pronájmu pro CUSTOM služby.
 - Veřejná správa rezervace přes token: detail a storno.

@@ -7,8 +7,8 @@ export interface Service { id: number; name: string; description?: string; activ
 export interface Member { id: number; user_id?: number; email?: string; display_name: string; role: 'owner'|'admin'|'worker'; active: boolean; provides_services?: boolean; can_manage_bookings?: boolean; can_manage_own_bookings?: boolean; can_approve_own_absence?: boolean }
 export interface Customer { id: number; name: string; email?: string; phone?: string; notes?: string }
 export interface BookingCustomer { id: number; name: string; email?: string | null; phone?: string | null; reservation_count: number; last_reservation_at: string }
-export interface BookingCustomerReservation { id: number; customer_name: string; customer_email?: string | null; customer_phone?: string | null; status: string; total_amount: number; currency: string; created_at: string; appointment_at?: string | null }
-export interface Reservation { id: number; customer_name: string; status: string; total_amount: number; currency: string; created_at: string; location_id?: number; member_name?: string | null; resource_name?: string | null }
+export interface BookingCustomerReservation { id: number; customer_name: string; customer_email?: string | null; customer_phone?: string | null; status: string; total_amount: number; currency: string; created_at: string; appointment_at?: string | null; appointment_ends_at?: string | null }
+export interface Reservation { id: number; customer_name: string; status: string; total_amount: number; currency: string; created_at: string; appointment_at?: string | null; appointment_ends_at?: string | null; location_id?: number; member_name?: string | null; resource_name?: string | null }
 export interface ResourceType { id: number; code: string; name: string; category: 'staff'|'space'|'equipment'|'other'; active: boolean }
 export interface Resource { id: number; name: string; resource_type_id: number; resource_type: string; resource_type_name: string; category: string; location_id: number; capacity: number; member_id?: number; inventory_code?: string; resource_state: 'available'|'maintenance'|'retired'; active: boolean }
 export interface Version { id: number; valid_from: string; valid_to?: string; duration_minutes: number; slot_interval_minutes: number; buffer_before_minutes: number; buffer_after_minutes: number; price: number; currency: string; duration_mode: 'FIXED'|'CUSTOM'; max_duration_minutes?: number }
@@ -18,6 +18,8 @@ export interface PublicRequirement { service_id: number; resource_type_id: numbe
 export interface PublicService { id: number; name: string; description?: string; duration_minutes: number; slot_interval_minutes: number; price: number; currency: string; duration_mode: 'FIXED'|'CUSTOM'; max_duration_minutes?: number; customer_can_choose_staff:boolean; customer_can_choose_resource:boolean; required_staff_count:number; locationIds: number[]; requirements: PublicRequirement[] }
 export interface PublicMember { id: number; display_name: string; location_id: number; service_id: number }
 export interface PublicCatalog { id: number; publicId: string; name: string; bookingEnabled: boolean; locations: PublicLocation[]; services: PublicService[]; members: PublicMember[] }
-export interface PublicSlot { time: string; startsAt: string; memberIds: number[] }
-export interface PublicSlots { date: string; locationId: number; serviceId: number; durationMode: string; slots: PublicSlot[]; note: string }
+export interface PublicSlot { time: string; startsAt: string; memberIds: number[]; resourceIds?: number[] }
+export interface PublicSlots { date: string; locationId: number; serviceId: number; durationMode: string; slots: PublicSlot[]; note: string; reason?: string }
+export interface RescheduleSlot { time: string; startsAt: string }
+export interface RescheduleAvailability { date: string; slots: RescheduleSlot[]; reason?: string }
 export interface BookingResult { id: number; status: string; startsAt: string; endsAt: string; price: number; currency: string; manageUrl: string }

@@ -41,11 +41,24 @@ test('address verification is explicit, coordinates do not survive address edits
 test('exceptions preview conflicts and never auto-cancel booked reservations', () => {
   const code = src('components/DateExceptions.tsx');
   assert.match(code, /dryRun=true/);
-  assert.match(code, /preview\.conflictCount>0/);
+  assert.match(code, /conflictCount\+=preview\.conflictCount/);
+  assert.match(code, /if\(conflictCount>0\)/);
   assert.doesNotMatch(code, /cancelConflictingReservations=true/);
   assert.match(code, /method:'DELETE'/);
   assert.match(src('pages/AdminTeam.tsx'), /DateExceptions/);
   assert.match(src('pages/AdminLocations.tsx'), /DateExceptions/);
+});
+test('saved exceptions can only be staged for deletion, not edited or overwritten', () => {
+  const code = src('components/DateExceptions.tsx');
+  assert.doesNotMatch(code, /editDay|editingDate|tr\('Edit'\)/);
+  assert.match(code, /setStaged\(current=>\(\{\.\.\.current,\[day.date\]:null\}\)\)/);
+  assert.match(code, /tr\('Delete exception'\)/);
+  assert.match(code, /entries.some\(day=>day.date===date\)/);
+  assert.match(code, /tr\('Undo pending change'\)/);
+  const save = code.slice(code.indexOf('const saveDraft='), code.indexOf('useMemberDetailSave('));
+  assert.match(save, /changedDate\}\?dryRun=true`,\{method:'DELETE'\}/);
+  assert.match(save, /changedDate\}`,\{method:'DELETE'\}/);
+  assert.ok(save.indexOf('if(conflictCount>0)') < save.lastIndexOf("method:'DELETE'"));
 });
 test('dashboard stat tiles link to respective pages', () => {
   const code = src('pages/AdminOverview.tsx');
